@@ -35,6 +35,14 @@ export default async function handler(
 
     const file = Array.isArray(files.file) ? files.file[0] : files.file;
     
+    console.log('Processing document upload:', {
+      studentId,
+      documentType,
+      fileName: file.originalFilename,
+      fileSize: file.size,
+      mimeType: file.mimetype
+    });
+
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
     if (!allowedTypes.includes(file.mimetype || '')) {
@@ -69,34 +77,54 @@ export default async function handler(
     const fileExtension = file.originalFilename?.split('.').pop() || 'pdf';
     const fileName = `${documentType}_${studentId}_${timestamp}.${fileExtension}`;
 
-    // Upload to Google Drive
     let fileUrl: string;
-    if (file.mimetype === 'application/pdf') {
-      fileUrl = await driveService.uploadPDFFromBuffer(student.folderId, fileName, fileBuffer);
-    } else {
-      // Handle images
-      const imageType = file.mimetype.split('/')[1];
-      const base64Data = fileBuffer.toString('base64');
-      fileUrl = await driveService.uploadImageFromBase64(student.folderId, fileName, base64Data, imageType);
+
+    try {
+      // Upload to Google Drive
+      if (file.mimetype === 'application/pdf') {
+        fileUrl = await driveService.uploadPDFFromBuffer(student.folderId, fileName, fileBuffer);
+      } else {
+        // Handle images
+        const imageType = file.mimetype.split('/')[1];
+        const base64Data = fileBuffer.toString('base64');
+        fileUrl = await driveService.uploadImageFromBase64(student.folderId, fileName, base64Data, imageType);
+      }
+
+      console.log('Document uploaded to Drive:', fileUrl);
+
+      // Update document tracking in Google Sheets
+      await sheetsService.updateDocumentStatus(studentId, {
+        [documentType]: fileUrl
+      });
+
+      console.log('Document status updated in sheets');
+
+    } catch (uploadError) {
+      console.error('Error uploading to Drive:', uploadError);
+      throw new Error('Failed to upload document to Google Drive');
     }
 
-    // Update document tracking in Google Sheets
-    await sheetsService.updateDocumentStatus(studentId, {
-      [documentType]: fileUrl
-    });
-
     // Clean up temp file
-    fs.unlinkSync(file.filepath);
+    try {
+      fs.unlinkSync(file.filepath);
+    } catch (cleanupError) {
+      console.warn('Failed to cleanup temp file:', cleanupError);
+    }
 
     res.status(200).json({ 
       success: true,
       fileUrl,
       fileName,
+      documentType,
+      fileSize: file.size,
       message: 'Document uploaded successfully'
     });
 
   } catch (error) {
     console.error('Error uploading document:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ 
+      error: 'Internal server error',
+      message: 'Failed to upload document. Please try again.'
+    });
   }
 }

@@ -20,12 +20,15 @@ export default async function handler(
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
+    console.log('Processing enrollment submission for student:', enrollmentData.studentId);
+
     const sheetsService = new GoogleSheetsService();
     const driveService = new GoogleDriveService();
     const pdfGenerator = new PDFGenerator();
 
     // Submit to Google Sheets
     const submissionId = await sheetsService.submitEnrollment(enrollmentData);
+    console.log('Enrollment data saved to sheets:', submissionId);
 
     // Get student folder ID
     const studentData = await sheetsService.findStudentByEmailAndDOB(
@@ -33,41 +36,62 @@ export default async function handler(
       enrollmentData.personalDetails.dateOfBirth
     );
 
+    let generatedDocuments = [];
+
     if (studentData && studentData.folderId) {
-      // Generate Personal Details Form PDF
-      const personalDetailsPdf = pdfGenerator.generatePersonalDetailsForm(enrollmentData);
-      const personalDetailsFileName = `Personal_Details_${enrollmentData.studentId}.pdf`;
+      console.log('Generating enrollment documents...');
       
-      // Generate Declaration Forms PDF
-      const declarationPdf = pdfGenerator.generateDeclarationForm(enrollmentData);
-      const declarationFileName = `Declaration_Forms_${enrollmentData.studentId}.pdf`;
+      try {
+        // Generate Personal Details Form PDF
+        const personalDetailsPdf = pdfGenerator.generatePersonalDetailsForm(enrollmentData);
+        const personalDetailsFileName = `Personal_Details_${enrollmentData.studentId}.pdf`;
+        
+        // Generate Declaration Forms PDF
+        const declarationPdf = pdfGenerator.generateDeclarationForm(enrollmentData);
+        const declarationFileName = `Declaration_Forms_${enrollmentData.studentId}.pdf`;
 
-      // Generate Enrollment Summary PDF
-      const summaryPdf = pdfGenerator.generateEnrollmentSummary(enrollmentData);
-      const summaryFileName = `Enrollment_Summary_${enrollmentData.studentId}.pdf`;
+        // Generate Enrollment Summary PDF
+        const summaryPdf = pdfGenerator.generateEnrollmentSummary(enrollmentData);
+        const summaryFileName = `Enrollment_Summary_${enrollmentData.studentId}.pdf`;
 
-      // Upload all PDFs to student's folder
-      const [personalDetailsUrl, declarationUrl, summaryUrl] = await Promise.all([
-        driveService.uploadPDFFromBuffer(studentData.folderId, personalDetailsFileName, personalDetailsPdf),
-        driveService.uploadPDFFromBuffer(studentData.folderId, declarationFileName, declarationPdf),
-        driveService.uploadPDFFromBuffer(studentData.folderId, summaryFileName, summaryPdf)
-      ]);
+        // Upload all PDFs to student's folder
+        const [personalDetailsUrl, declarationUrl, summaryUrl] = await Promise.all([
+          driveService.uploadPDFFromBuffer(studentData.folderId, personalDetailsFileName, personalDetailsPdf),
+          driveService.uploadPDFFromBuffer(studentData.folderId, declarationFileName, declarationPdf),
+          driveService.uploadPDFFromBuffer(studentData.folderId, summaryFileName, summaryPdf)
+        ]);
 
-      console.log('Enrollment documents uploaded:', {
-        personalDetails: personalDetailsUrl,
-        declaration: declarationUrl,
-        summary: summaryUrl
-      });
+        generatedDocuments = [
+          { name: 'Personal Details Form', url: personalDetailsUrl },
+          { name: 'Declaration Forms', url: declarationUrl },
+          { name: 'Enrollment Summary', url: summaryUrl }
+        ];
+
+        console.log('Enrollment documents uploaded successfully:', generatedDocuments.length);
+
+      } catch (pdfError) {
+        console.error('Error generating PDFs:', pdfError);
+        // Continue without failing the entire request
+      }
+    } else {
+      console.warn('Student folder not found for:', enrollmentData.studentId);
     }
+
+    console.log('Enrollment submission completed successfully');
 
     res.status(200).json({ 
       success: true, 
       submissionId,
-      message: 'Enrollment submitted successfully'
+      message: 'Enrollment submitted successfully',
+      documentsGenerated: generatedDocuments.length,
+      documents: generatedDocuments
     });
 
   } catch (error) {
     console.error('Error submitting enrollment:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ 
+      error: 'Internal server error',
+      message: 'Failed to submit enrollment. Please try again.'
+    });
   }
 }

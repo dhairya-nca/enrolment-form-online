@@ -61,9 +61,15 @@ export class GoogleDriveService {
         parents: [folderId],
       };
 
+      // Convert Buffer to Readable stream for Google Drive API
+      const { Readable } = require('stream');
+      const stream = new Readable();
+      stream.push(fileBuffer);
+      stream.push(null); // End the stream
+
       const media = {
         mimeType,
-        body: Buffer.from(fileBuffer),
+        body: stream,
       };
 
       const response = await this.drive.files.create({
@@ -73,7 +79,7 @@ export class GoogleDriveService {
       });
 
       console.log(`Uploaded file: ${fileName} with ID: ${response.data.id}`);
-      return response.data.webViewLink;
+      return response.data.webViewLink || `https://drive.google.com/file/d/${response.data.id}/view`;
     } catch (error) {
       console.error('Error uploading file:', error);
       throw new Error('Failed to upload file');

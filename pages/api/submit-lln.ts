@@ -1,8 +1,6 @@
 // pages/api/submit-lln.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { GoogleSheetsService } from '../../lib/googleSheets';
-import { GoogleDriveService } from '../../lib/googleDrive';
-import { PDFGenerator } from '../../lib/pdfGenerator';
 
 export default async function handler(
   req: NextApiRequest,
@@ -20,9 +18,9 @@ export default async function handler(
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
+    console.log('Processing LLN submission for student:', llnData.studentId);
+
     const sheetsService = new GoogleSheetsService();
-    const driveService = new GoogleDriveService();
-    const pdfGenerator = new PDFGenerator();
 
     // Submit to Google Sheets and get attempt count
     const submissionId = await sheetsService.submitLLNAssessment({
@@ -35,30 +33,18 @@ export default async function handler(
       completedAt: llnData.completedAt
     });
 
-    // Get student folder ID from tracking
-    const studentData = await sheetsService.findStudentByEmailAndDOB(
+    console.log('LLN assessment saved to sheets:', submissionId);
+
+    // Get updated attempt count
+    const updatedStudentData = await sheetsService.findStudentByEmailAndDOB(
       llnData.personalInfo.email, 
       llnData.personalInfo.dateOfBirth
     );
-
-    if (studentData && studentData.folderId) {
-      // Generate LLN Report PDF
-      const pdfBuffer = pdfGenerator.generateLLNReport(llnData);
-      const pdfFileName = `LLN_Report_${llnData.studentId}_${new Date().toISOString().split('T')[0]}.pdf`;
-      
-      // Upload PDF to student's Google Drive folder
-      const pdfUrl = await driveService.uploadPDFFromBuffer(
-        studentData.folderId,
-        pdfFileName,
-        pdfBuffer
-      );
-
-      console.log(`LLN Report uploaded: ${pdfUrl}`);
-    }
-
-    // Check if student has reached maximum attempts
-    const currentAttemptCount = studentData?.attemptCount || 0;
+    
+    const currentAttemptCount = updatedStudentData?.attemptCount || 0;
     const maxAttemptsReached = currentAttemptCount >= 3;
+
+    console.log('LLN submission completed successfully');
 
     res.status(200).json({ 
       success: true, 
@@ -68,11 +54,16 @@ export default async function handler(
       rating: llnData.rating,
       overallScore: llnData.overallScore,
       attemptCount: currentAttemptCount,
-      maxAttemptsReached
+      maxAttemptsReached,
+      pdfGenerated: false, // Will be implemented later
+      note: 'PDF generation will be added once Drive permissions are configured'
     });
 
   } catch (error) {
     console.error('Error submitting LLN assessment:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ 
+      error: 'Internal server error',
+      message: 'Failed to submit LLN assessment. Please try again.'
+    });
   }
 }

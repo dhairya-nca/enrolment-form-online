@@ -1,195 +1,246 @@
-import React, { useState, useEffect } from 'react';
-import { ChevronLeftIcon, ChevronRightIcon, CheckCircleIcon } from 'lucide-react';
+// components/forms/LLNAssessment.tsx
+import React, { useState } from 'react';
+import { ChevronLeft, ChevronRight, CheckCircle } from 'lucide-react';
 
-// All 22 LLN Questions (keeping your existing questions structure)
-const LLN_QUESTIONS = [
-  // Learning (2 questions)
-  {
-    section: 'Learning',
-    id: 'q1',
-    question: 'How do you prefer to learn new skills?',
-    type: 'checkbox' as const,
-    options: ['Watching videos', 'Reading', 'Doing it yourself', 'Listening to others'],
-    required: true
-  },
-  {
-    section: 'Learning',
-    id: 'q2', 
-    question: 'What do you do if you don\'t understand something the first time?',
-    type: 'text' as const,
-    required: true
-  },
-  
-  // Reading (4 questions)
-  {
-    section: 'Reading',
-    id: 'q3',
-    question: 'What should you do before preparing food? (Read: "Always wash your hands before preparing food.")',
-    type: 'text' as const,
-    answer: 'wash your hands',
-    required: true
-  },
-  {
-    section: 'Reading',
-    id: 'q4',
-    question: 'Which sign means "No Smoking"?',
-    type: 'radio' as const,
-    options: ['🚬', '🚭', '🛑', '🔥'],
-    answer: '🚭',
-    required: true
-  },
-  {
-    section: 'Reading',
-    id: 'q5',
-    question: 'If a label says "Keep away from children", what does it mean?',
-    type: 'text' as const,
-    required: true
-  },
-  {
-    section: 'Reading',
-    id: 'q6',
-    question: 'Find a word in this sentence that means "required": "It is mandatory to wear safety boots."',
-    type: 'text' as const,
-    answer: 'mandatory',
-    required: true
-  },
-  
-  // Writing (5 questions)
-  {
-    section: 'Writing',
-    id: 'q7',
-    question: 'Write one sentence explaining why you want to do this course.',
-    type: 'text' as const,
-    required: true
-  },
-  {
-    section: 'Writing',
-    id: 'q8',
-    question: 'Fill in the form - Name:',
-    type: 'text' as const,
-    required: true
-  },
-  {
-    section: 'Writing',
-    id: 'q9',
-    question: 'Fill in the form - Date of Birth:',
-    type: 'text' as const,
-    required: true
-  },
-  {
-    section: 'Writing',
-    id: 'q10',
-    question: 'Fill in the form - Phone Number:',
-    type: 'text' as const,
-    required: true
-  },
-  {
-    section: 'Writing',
-    id: 'q11',
-    question: 'Write a short message to your trainer if you are going to be late.',
-    type: 'text' as const,
-    required: true
-  },
-  
-  // Numeracy (5 questions)
-  {
-    section: 'Numeracy',
-    id: 'q12',
-    question: 'What is 10 + 5?',
-    type: 'number' as const,
-    answer: '15',
-    required: true
-  },
-  {
-    section: 'Numeracy',
-    id: 'q13',
-    question: 'A carton of milk costs $2. If you buy 3, how much do you spend?',
-    type: 'number' as const,
-    answer: '6',
-    required: true
-  },
-  {
-    section: 'Numeracy',
-    id: 'q14',
-    question: 'You start work at 9:00 AM and finish at 3:00 PM. How many hours did you work?',
-    type: 'number' as const,
-    answer: '6',
-    required: true
-  },
-  {
-    section: 'Numeracy',
-    id: 'q15',
-    question: 'If you take medication 3 times a day for 7 days, how many doses total?',
-    type: 'number' as const,
-    answer: '21',
-    required: true
-  },
-  {
-    section: 'Numeracy',
-    id: 'q16',
-    question: 'What is 25% of 200?',
-    type: 'number' as const,
-    answer: '50',
-    required: true
-  },
-  
-  // Oral Communication (3 questions)
-  {
-    section: 'Oral Communication',
-    id: 'q17',
-    question: 'How would you ask for help if you didn\'t understand instructions?',
-    type: 'text' as const,
-    required: true
-  },
-  {
-    section: 'Oral Communication',
-    id: 'q18',
-    question: 'Describe how you would introduce yourself to a new colleague.',
-    type: 'text' as const,
-    required: true
-  },
-  {
-    section: 'Oral Communication',
-    id: 'q19',
-    question: 'What would you say if you need to call in sick to work?',
-    type: 'text' as const,
-    required: true
-  },
-  
-  // Personal Information (3 questions)
-  {
-    section: 'Personal Information',
-    id: 'q20',
-    question: 'First Name',
-    type: 'text' as const,
-    required: true
-  },
-  {
-    section: 'Personal Information',
-    id: 'q21',
-    question: 'Last Name',
-    type: 'text' as const,
-    required: true
-  },
-  {
-    section: 'Personal Information',
-    id: 'q22',
-    question: 'Email Address',
-    type: 'email' as const,
-    required: true
-  }
-];
+// Define proper TypeScript interfaces
+interface BaseQuestion {
+  section: string;
+  id: string;
+  question: string;
+  required: boolean;
+  hint?: string;
+}
+
+interface RadioQuestion extends BaseQuestion {
+  type: 'radio';
+  options: string[];
+  answer?: string;
+}
+
+interface CheckboxQuestion extends BaseQuestion {
+  type: 'checkbox';
+  options: string[];
+}
+
+interface TextQuestion extends BaseQuestion {
+  type: 'text';
+  answer?: string;
+}
+
+interface NumberQuestion extends BaseQuestion {
+  type: 'number';
+  answer?: string;
+}
+
+interface EmailQuestion extends BaseQuestion {
+  type: 'email';
+}
+
+type Question = RadioQuestion | CheckboxQuestion | TextQuestion | NumberQuestion | EmailQuestion;
+
+// All LLN Questions organized by sections with proper typing
+const LLN_SECTIONS: Record<string, Question[]> = {
+  'Learning': [
+    {
+      section: 'Learning',
+      id: 'q1',
+      question: 'How do you prefer to learn new skills?',
+      type: 'checkbox',
+      options: ['Watching videos', 'Reading', 'Doing it yourself', 'Listening to others'],
+      required: true
+    },
+    {
+      section: 'Learning',
+      id: 'q2', 
+      question: 'What do you do if you don\'t understand something the first time?',
+      type: 'text',
+      required: true
+    }
+  ],
+  'Reading': [
+    {
+      section: 'Reading',
+      id: 'q3',
+      question: 'What should you do before preparing food?',
+      type: 'text',
+      hint: 'Read: "Always wash your hands before preparing food."',
+      answer: 'wash your hands',
+      required: true
+    },
+    {
+      section: 'Reading',
+      id: 'q4',
+      question: 'Which sign means \'No Smoking\'?',
+      type: 'radio',
+      options: ['🚬', '🚭', '🛑', '🔥'],
+      answer: '🚭',
+      required: true
+    },
+    {
+      section: 'Reading',
+      id: 'q5',
+      question: 'If a label says "Keep away from children", what does it mean?',
+      type: 'text',
+      required: true
+    },
+    {
+      section: 'Reading',
+      id: 'q6',
+      question: 'Find a word in this sentence that means \'required\' (\'It is mandatory to wear safety boots.\')',
+      type: 'text',
+      answer: 'mandatory',
+      required: true
+    }
+  ],
+  'Writing': [
+    {
+      section: 'Writing',
+      id: 'q7',
+      question: 'Write one sentence explaining why you want to do this course.',
+      type: 'text',
+      required: true
+    },
+    {
+      section: 'Writing',
+      id: 'q8',
+      question: 'Fill in the form: Name:',
+      type: 'text',
+      required: true
+    },
+    {
+      section: 'Writing',
+      id: 'q9',
+      question: 'Fill in the form: Date of Birth:',
+      type: 'text',
+      required: true
+    },
+    {
+      section: 'Writing',
+      id: 'q10',
+      question: 'Fill in the form: Phone Number:',
+      type: 'text',
+      required: true
+    },
+    {
+      section: 'Writing',
+      id: 'q11',
+      question: 'Write a short message to your trainer if you are going to be late.',
+      type: 'text',
+      required: true
+    }
+  ],
+  'Numeracy': [
+    {
+      section: 'Numeracy',
+      id: 'q12',
+      question: 'What is 10 + 5?',
+      type: 'number',
+      answer: '15',
+      required: true
+    },
+    {
+      section: 'Numeracy',
+      id: 'q13',
+      question: 'A carton of milk costs $2. If you buy 3, how much do you spend?',
+      type: 'number',
+      answer: '6',
+      required: true
+    },
+    {
+      section: 'Numeracy',
+      id: 'q14',
+      question: 'You start work at 9:00 AM and finish at 3:00 PM. How many hours did you work?',
+      type: 'number',
+      answer: '6',
+      required: true
+    },
+    {
+      section: 'Numeracy',
+      id: 'q15',
+      question: 'Write the larger number: 42 or 24',
+      type: 'number',
+      answer: '42',
+      required: true
+    },
+    {
+      section: 'Numeracy',
+      id: 'q16',
+      question: 'What is half of 98?',
+      type: 'number',
+      answer: '49',
+      required: true
+    }
+  ],
+  'Digital Literacy': [
+    {
+      section: 'Digital Literacy',
+      id: 'q17',
+      question: 'What is the purpose of a password?',
+      type: 'text',
+      required: true
+    },
+    {
+      section: 'Digital Literacy',
+      id: 'q18',
+      question: 'Which one is a web browser?',
+      type: 'radio',
+      options: ['Microsoft Word', 'Google Chrome', 'Excel', 'Zoom'],
+      answer: 'Google Chrome',
+      required: true
+    },
+    {
+      section: 'Digital Literacy',
+      id: 'q19',
+      question: 'You can attach a file to an email.',
+      type: 'radio',
+      options: ['True', 'False'],
+      answer: 'True',
+      required: true
+    },
+    {
+      section: 'Digital Literacy',
+      id: 'q20',
+      question: 'You need to join an online class. What should you do?',
+      type: 'text',
+      required: true
+    },
+    {
+      section: 'Digital Literacy',
+      id: 'q21',
+      question: 'List one thing you can do on a computer.',
+      type: 'text',
+      required: true
+    },
+    {
+      section: 'Digital Literacy',
+      id: 'q22',
+      question: 'Which of these is the safest way to create a password?',
+      type: 'radio',
+      options: [
+        'Use your pet\'s name and birthday',
+        'Use \'password123\'',
+        'Use a mix of letters, numbers, and symbols',
+        'Use only your date of birth'
+      ],
+      answer: 'Use a mix of letters, numbers, and symbols',
+      required: true
+    }
+  ]
+};
 
 interface LLNAssessmentProps {
   onComplete: (responses: any) => void;
 }
 
 const LLNAssessment: React.FC<LLNAssessmentProps> = ({ onComplete }) => {
-  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [currentSection, setCurrentSection] = useState(0);
   const [responses, setResponses] = useState<Record<string, any>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const currentQ = LLN_QUESTIONS[currentQuestion];
+  const sectionNames = Object.keys(LLN_SECTIONS);
+  const currentSectionName = sectionNames[currentSection];
+  const currentQuestions = LLN_SECTIONS[currentSectionName];
+  const totalSections = sectionNames.length;
 
   const handleAnswerChange = (questionId: string, value: any) => {
     setResponses(prev => ({
@@ -198,17 +249,33 @@ const LLNAssessment: React.FC<LLNAssessmentProps> = ({ onComplete }) => {
     }));
   };
 
+  const validateCurrentSection = () => {
+    const unansweredQuestions = currentQuestions.filter(q => 
+      q.required && (!responses[q.id] || 
+      (Array.isArray(responses[q.id]) && responses[q.id].length === 0) ||
+      responses[q.id].toString().trim() === '')
+    );
+
+    if (unansweredQuestions.length > 0) {
+      alert(`Please answer all required questions in the ${currentSectionName} section before proceeding.`);
+      return false;
+    }
+    return true;
+  };
+
   const handleNext = () => {
-    if (currentQuestion < LLN_QUESTIONS.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
+    if (!validateCurrentSection()) return;
+
+    if (currentSection < totalSections - 1) {
+      setCurrentSection(currentSection + 1);
     } else {
       handleSubmit();
     }
   };
 
   const handlePrevious = () => {
-    if (currentQuestion > 0) {
-      setCurrentQuestion(currentQuestion - 1);
+    if (currentSection > 0) {
+      setCurrentSection(currentSection - 1);
     }
   };
 
@@ -216,11 +283,12 @@ const LLNAssessment: React.FC<LLNAssessmentProps> = ({ onComplete }) => {
     let totalScore = 0;
     let maxScore = 0;
 
-    LLN_QUESTIONS.forEach(question => {
+    Object.values(LLN_SECTIONS).flat().forEach((question: Question) => {
       maxScore += 1;
       const response = responses[question.id];
       
-      if (question.answer) {
+      // Type-safe answer checking
+      if ('answer' in question && question.answer) {
         // Questions with specific answers
         if (typeof response === 'string' && typeof question.answer === 'string') {
           if (response.toLowerCase().includes(question.answer.toLowerCase())) {
@@ -250,14 +318,7 @@ const LLNAssessment: React.FC<LLNAssessmentProps> = ({ onComplete }) => {
     else if (score < 80) rating = 'Good';
 
     const assessmentData = {
-      responses: {
-        ...responses,
-        firstName: responses.q20 || '',
-        lastName: responses.q21 || '',
-        email: responses.q22 || '',
-        phone: responses.phone || '',
-        dateOfBirth: responses.dateOfBirth || ''
-      },
+      responses,
       overallScore: score,
       rating,
       eligible,
@@ -267,66 +328,85 @@ const LLNAssessment: React.FC<LLNAssessmentProps> = ({ onComplete }) => {
     onComplete(assessmentData);
   };
 
-  const renderQuestion = () => {
-    const response = responses[currentQ.id] || '';
+  const renderQuestion = (question: Question) => {
+    const response = responses[question.id] || '';
 
     return (
-      <div className="space-y-6">
-        <div className="mb-6">
-          <div className="text-sm text-nca-gray-600 mb-2">{currentQ.section}</div>
-          <h3 className="text-xl font-semibold text-nca-gray-900">{currentQ.question}</h3>
+      <div key={question.id} className="bg-white rounded-lg p-6 shadow-sm border border-nca-gray-200">
+        <div className="mb-4">
+          <h3 className="text-lg font-medium text-nca-gray-900 mb-2">
+            {question.question}
+            {question.required && <span className="text-red-500 ml-1">*</span>}
+          </h3>
+          {question.hint && (
+            <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg">
+              <p className="text-sm text-blue-800">{question.hint}</p>
+            </div>
+          )}
         </div>
 
-        <div className="space-y-4">
-          {currentQ.type === 'radio' && currentQ.options && (
-            <div className="space-y-3">
-              {currentQ.options.map((option, index) => (
-                <label key={index} className="flex items-center space-x-3 cursor-pointer">
+        <div className="space-y-3">
+          {question.type === 'radio' && 'options' in question && (
+            <div className="space-y-2">
+              {question.options.map((option: string, index: number) => (
+                <label key={index} className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg border border-nca-gray-200 hover:bg-nca-light">
                   <input
                     type="radio"
-                    name={currentQ.id}
+                    name={question.id}
                     value={option}
                     checked={response === option}
-                    onChange={(e) => handleAnswerChange(currentQ.id, e.target.value)}
-                    className="h-4 w-4 text-nca-primary focus:ring-nca-primary border-gray-300"
+                    onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+                    className="h-4 w-4 text-nca-primary focus:ring-nca-primary border-nca-gray-300"
                   />
-                  <span className="text-lg">{option}</span>
+                  <span className="text-nca-gray-900">{option}</span>
                 </label>
               ))}
             </div>
           )}
 
-          {currentQ.type === 'checkbox' && currentQ.options && (
-            <div className="space-y-3">
-              {currentQ.options.map((option, index) => (
-                <label key={index} className="flex items-center space-x-3 cursor-pointer">
+          {question.type === 'checkbox' && 'options' in question && (
+            <div className="space-y-2">
+              {question.options.map((option: string, index: number) => (
+                <label key={index} className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg border border-nca-gray-200 hover:bg-nca-light">
                   <input
                     type="checkbox"
                     checked={Array.isArray(response) ? response.includes(option) : false}
                     onChange={(e) => {
                       const currentValues = Array.isArray(response) ? response : [];
                       if (e.target.checked) {
-                        handleAnswerChange(currentQ.id, [...currentValues, option]);
+                        handleAnswerChange(question.id, [...currentValues, option]);
                       } else {
-                        handleAnswerChange(currentQ.id, currentValues.filter(v => v !== option));
+                        handleAnswerChange(question.id, currentValues.filter(v => v !== option));
                       }
                     }}
-                    className="h-4 w-4 text-nca-primary focus:ring-nca-primary border-gray-300 rounded"
+                    className="h-4 w-4 text-nca-primary focus:ring-nca-primary border-nca-gray-300 rounded"
                   />
-                  <span>{option}</span>
+                  <span className="text-nca-gray-900">{option}</span>
                 </label>
               ))}
             </div>
           )}
 
-          {(['text', 'email', 'number'].includes(currentQ.type)) && (
-            <textarea
-              value={response}
-              onChange={(e) => handleAnswerChange(currentQ.id, e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-nca-primary focus:border-transparent transition-colors resize-none"
-              rows={currentQ.type === 'text' ? 3 : 1}
-              placeholder="Enter your answer..."
-            />
+          {(['text', 'email', 'number'].includes(question.type)) && (
+            <div>
+              {question.type === 'text' ? (
+                <textarea
+                  value={response}
+                  onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+                  className="w-full px-3 py-2 border border-nca-gray-300 rounded-lg focus:ring-2 focus:ring-nca-primary focus:border-transparent resize-none"
+                  rows={3}
+                  placeholder="Your answer"
+                />
+              ) : (
+                <input
+                  type={question.type === 'number' ? 'number' : 'text'}
+                  value={response}
+                  onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+                  className="w-full px-3 py-2 border border-nca-gray-300 rounded-lg focus:ring-2 focus:ring-nca-primary focus:border-transparent"
+                  placeholder="Your answer"
+                />
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -334,54 +414,91 @@ const LLNAssessment: React.FC<LLNAssessmentProps> = ({ onComplete }) => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="max-w-4xl mx-auto p-6 nca-gradient min-h-screen">
+      {/* Header */}
+      <div className="bg-white rounded-lg shadow-sm border border-nca-gray-200 p-6 mb-6">
+        <h1 className="text-2xl font-bold text-nca-gray-900 mb-2">Language, Literacy & Numeracy Assessment</h1>
+        <p className="text-nca-gray-600">Complete this assessment to help us understand your learning needs.</p>
+      </div>
+
       {/* Progress Bar */}
-      <div className="space-y-2">
-        <div className="flex justify-between text-sm text-nca-gray">
-          <span>Question {currentQuestion + 1} of {LLN_QUESTIONS.length}</span>
-          <span>{Math.round(((currentQuestion + 1) / LLN_QUESTIONS.length) * 100)}% Complete</span>
+      <div className="bg-white rounded-lg shadow-sm border border-nca-gray-200 p-4 mb-6">
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-sm font-medium text-nca-gray-700">Section {currentSection + 1} of {totalSections}: {currentSectionName}</span>
+          <span className="text-sm text-nca-gray-500">{Math.round(((currentSection + 1) / totalSections) * 100)}% Complete</span>
         </div>
-        <div className="nca-progress-bar">
+        <div className="w-full bg-nca-gray-200 rounded-full h-2">
           <div 
-            className="nca-progress-fill"
-            style={{ width: `${((currentQuestion + 1) / LLN_QUESTIONS.length) * 100}%` }}
+            className="bg-nca-primary h-2 rounded-full transition-all duration-300"
+            style={{ width: `${((currentSection + 1) / totalSections) * 100}%` }}
           />
         </div>
       </div>
 
-      {renderQuestion()}
+      {/* Section Indicator */}
+      <div className="flex justify-center mb-6">
+        <div className="flex space-x-2">
+          {sectionNames.map((section, index) => (
+            <div
+              key={section}
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                index < currentSection
+                  ? 'bg-green-500 text-white'
+                  : index === currentSection
+                  ? 'bg-nca-primary text-white'
+                  : 'bg-nca-gray-300 text-nca-gray-600'
+              }`}
+            >
+              {index < currentSection ? (
+                <CheckCircle className="w-4 h-4" />
+              ) : (
+                index + 1
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Questions */}
+      <div className="space-y-4 mb-6">
+        {currentQuestions.map(renderQuestion)}
+      </div>
 
       {/* Navigation */}
-      <div className="flex justify-between items-center">
-        <button
-          onClick={handlePrevious}
-          disabled={currentQuestion === 0}
-          className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-colors ${
-            currentQuestion === 0 
-              ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-              : 'border border-gray-300 text-nca-gray hover:bg-gray-50'
-          }`}
-        >
-          <ChevronLeftIcon className="w-4 h-4" />
-          <span>Previous</span>
-        </button>
+      <div className="bg-white rounded-lg shadow-sm border border-nca-gray-200 p-4">
+        <div className="flex justify-between items-center">
+          <button
+            onClick={handlePrevious}
+            disabled={currentSection === 0}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+              currentSection === 0 
+                ? 'bg-nca-gray-100 text-nca-gray-400 cursor-not-allowed' 
+                : 'bg-nca-gray-600 text-white hover:bg-nca-gray-700'
+            }`}
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span>Previous</span>
+          </button>
 
-        <span className="text-sm text-nca-gray">
-          {currentQuestion + 1} / {LLN_QUESTIONS.length}
-        </span>
-
-        <button
-          onClick={handleNext}
-          disabled={isSubmitting}
-          className="flex items-center space-x-2 px-6 py-3 bg-nca-primary text-white rounded-lg hover:bg-nca-secondary transition-colors disabled:opacity-50"
-        >
-          <span>{currentQuestion === LLN_QUESTIONS.length - 1 ? 'Complete Assessment' : 'Next'}</span>
-          {currentQuestion === LLN_QUESTIONS.length - 1 ? (
-            <CheckCircleIcon className="w-4 h-4" />
-          ) : (
-            <ChevronRightIcon className="w-4 h-4" />
-          )}
-        </button>
+          <button
+            onClick={handleNext}
+            disabled={isSubmitting}
+            className="flex items-center space-x-2 px-4 py-2 bg-nca-primary text-white rounded-lg font-medium hover:bg-nca-secondary transition-colors disabled:opacity-50"
+          >
+            <span>
+              {currentSection === totalSections - 1 ? 'Submit' : 'Next'}
+            </span>
+            {currentSection === totalSections - 1 ? (
+              isSubmitting ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              ) : (
+                <CheckCircle className="w-4 h-4" />
+              )
+            ) : (
+              <ChevronRight className="w-4 h-4" />
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );

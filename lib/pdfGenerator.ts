@@ -1,293 +1,409 @@
+// lib/pdfGenerator.ts
 import jsPDF from 'jspdf';
 import { LLNResponse, EnrollmentData } from '../utils/types';
-import { LLN_QUESTIONS } from '../utils/constants';
 
 export class PDFGenerator {
-  private addHeader(doc: jsPDF, title: string) {
-    // Add NCA logo and header
-    doc.setFillColor(34, 54, 74); // NCA primary color
-    doc.rect(0, 0, doc.internal.pageSize.width, 25, 'F');
-    
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(18);
+  private createHeader(doc: jsPDF, title: string) {
+    // Add logo/header
+    doc.setFontSize(20);
     doc.setFont('helvetica', 'bold');
-    doc.text('National College Australia', 20, 17);
+    doc.text('National College Australia', 20, 20);
     
-    doc.setFontSize(12);
+    doc.setFontSize(16);
     doc.setFont('helvetica', 'normal');
     doc.text(title, 20, 35);
     
-    // Add current date
-    const date = new Date().toLocaleDateString('en-AU');
-    doc.text(`Generated: ${date}`, doc.internal.pageSize.width - 60, 17);
+    // Add a line separator
+    doc.setLineWidth(0.5);
+    doc.line(20, 45, 190, 45);
     
-    doc.setTextColor(0, 0, 0); // Reset to black
-    return 45; // Return Y position for content
+    return 55; // Return the Y position for content to start
   }
 
-  private addFooter(doc: jsPDF, pageNum: number) {
+  private createFooter(doc: jsPDF) {
     const pageHeight = doc.internal.pageSize.height;
-    doc.setFontSize(8);
-    doc.setTextColor(128, 128, 128);
-    doc.text(
-      `Page ${pageNum} | National College Australia | RTO Provider No. #91000`,
-      20,
-      pageHeight - 10
-    );
+    const footerY = pageHeight - 20;
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('This document was generated automatically.', 105, footerY, { align: 'center' });
+    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 105, footerY + 10, { align: 'center' });
   }
 
-  generateLLNReport(data: LLNResponse): Uint8Array {
+  generateLLNReport(data: LLNResponse & { personalInfo: any }): Buffer {
     const doc = new jsPDF();
-    let yPos = this.addHeader(doc, 'LLN Assessment Report');
-    
+    let yPosition = this.createHeader(doc, 'Language, Literacy and Numeracy (LLN) Assessment Report');
+
     // Student Information
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text('Student Information', 20, yPos + 10);
-    
-    doc.setFontSize(10);
+    doc.text('Student Information', 20, yPosition);
+    yPosition += 10;
+
+    doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
-    yPos += 25;
-    
-    const studentInfo = [
-      `Name: ${data.responses.firstName} ${data.responses.lastName}`,
-      `Email: ${data.responses.email}`,
-      `Phone: ${data.responses.phone}`,
-      `Date of Birth: ${data.responses.dateOfBirth}`,
-      `Assessment Date: ${new Date(data.completedAt).toLocaleDateString('en-AU')}`
-    ];
-    
-    studentInfo.forEach(info => {
-      doc.text(info, 20, yPos);
-      yPos += 6;
-    });
-    
+    doc.text(`Student ID: ${data.studentId}`, 20, yPosition);
+    yPosition += 7;
+    doc.text(`Name: ${data.personalInfo.firstName} ${data.personalInfo.lastName}`, 20, yPosition);
+    yPosition += 7;
+    doc.text(`Email: ${data.personalInfo.email}`, 20, yPosition);
+    yPosition += 7;
+    doc.text(`Phone: ${data.personalInfo.phone}`, 20, yPosition);
+    yPosition += 7;
+    doc.text(`Date of Birth: ${data.personalInfo.dateOfBirth}`, 20, yPosition);
+    yPosition += 7;
+    doc.text(`Assessment Date: ${new Date(data.completedAt).toLocaleDateString()}`, 20, yPosition);
+    yPosition += 15;
+
     // Assessment Results
-    yPos += 10;
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text('Assessment Results', 20, yPos);
-    
-    yPos += 15;
+    doc.text('Assessment Results', 20, yPosition);
+    yPosition += 10;
+
     doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Overall Score: ${data.overallScore}%`, 20, yPos);
-    doc.text(`Rating: ${data.rating}`, 120, yPos);
-    
-    yPos += 10;
-    const eligibilityColor = data.eligible ? [0, 128, 0] : [255, 0, 0];
-    doc.setTextColor(...eligibilityColor);
-    doc.text(`Eligibility: ${data.eligible ? 'ELIGIBLE' : 'NOT ELIGIBLE'}`, 20, yPos);
-    doc.setTextColor(0, 0, 0);
-    
-    // Section Scores
-    yPos += 20;
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Section Breakdown', 20, yPos);
-    
-    yPos += 15;
-    doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
+    doc.text(`Overall Score: ${data.overallScore}%`, 20, yPosition);
+    yPosition += 7;
+    doc.text(`Rating: ${data.rating}`, 20, yPosition);
+    yPosition += 7;
     
-    const sections = [
-      { name: 'Learning', score: data.scores.learning },
-      { name: 'Reading', score: data.scores.reading },
-      { name: 'Writing', score: data.scores.writing },
-      { name: 'Numeracy', score: data.scores.numeracy },
-      { name: 'Digital Literacy', score: data.scores.digitalLiteracy }
+    // Highlight eligibility status
+    doc.setFont('helvetica', 'bold');
+    if (data.eligible) {
+      doc.setTextColor(0, 150, 0); // Green
+      doc.text('Eligibility Status: ELIGIBLE', 20, yPosition);
+    } else {
+      doc.setTextColor(200, 0, 0); // Red
+      doc.text('Eligibility Status: NOT ELIGIBLE', 20, yPosition);
+    }
+    doc.setTextColor(0, 0, 0); // Reset to black
+    doc.setFont('helvetica', 'normal');
+    yPosition += 15;
+
+    // Detailed Scores
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Detailed Scores by Category', 20, yPosition);
+    yPosition += 10;
+
+    const scores = [
+      { category: 'Learning Skills', score: data.scores.learning },
+      { category: 'Reading Comprehension', score: data.scores.reading },
+      { category: 'Writing Skills', score: data.scores.writing },
+      { category: 'Numeracy Skills', score: data.scores.numeracy },
+      { category: 'Digital Literacy', score: data.scores.digitalLiteracy }
     ];
-    
-    sections.forEach(section => {
-      doc.text(`${section.name}:`, 20, yPos);
-      doc.text(`${section.score}%`, 70, yPos);
-      
-      // Progress bar
-      doc.setFillColor(240, 240, 240);
-      doc.rect(80, yPos - 3, 60, 6, 'F');
-      doc.setFillColor(59, 130, 246);
-      doc.rect(80, yPos - 3, (section.score / 100) * 60, 6, 'F');
-      
-      yPos += 12;
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    scores.forEach(item => {
+      doc.text(`${item.category}: ${item.score}%`, 20, yPosition);
+      yPosition += 7;
     });
-    
-    // Detailed Responses (new page)
-    doc.addPage();
-    yPos = this.addHeader(doc, 'Detailed Assessment Responses');
-    
-    LLN_QUESTIONS.forEach((question, index) => {
-      if (yPos > 250) {
-        doc.addPage();
-        yPos = this.addHeader(doc, 'Detailed Assessment Responses (continued)');
-      }
-      
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.text(`${index + 1}. ${question.question}`, 20, yPos, { maxWidth: 170 });
-      
-      yPos += 8;
-      doc.setFont('helvetica', 'normal');
-      const response = data.responses[question.id];
-      const responseText = Array.isArray(response) ? response.join(', ') : response || 'No response';
-      doc.text(`Answer: ${responseText}`, 25, yPos, { maxWidth: 165 });
-      
-      yPos += 15;
-    });
-    
-    this.addFooter(doc, 1);
-    return doc.output('arraybuffer') as Uint8Array;
+    yPosition += 10;
+
+    // Recommendations
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Recommendations', 20, yPosition);
+    yPosition += 10;
+
+    let recommendations = '';
+    if (data.eligible) {
+      recommendations = 'Student has demonstrated sufficient language, literacy, and numeracy skills to undertake the chosen course. No additional support required.';
+    } else {
+      recommendations = 'Student requires additional support in language, literacy, and numeracy skills before commencing the course. We recommend enrolling in foundation courses or seeking tutoring support.';
+    }
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    const splitText = doc.splitTextToSize(recommendations, 170);
+    doc.text(splitText, 20, yPosition);
+
+    this.createFooter(doc);
+
+    return Buffer.from(doc.output('arraybuffer'));
   }
 
-  generateEnrollmentForm(data: EnrollmentData): Uint8Array {
+  generatePersonalDetailsForm(data: EnrollmentData): Buffer {
     const doc = new jsPDF();
-    let yPos = this.addHeader(doc, 'Student Enrollment Form');
-    
-    // Personal Details Section
+    let yPosition = this.createHeader(doc, 'Student Personal Details Form');
+
+    // Personal Information
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text('Personal Details', 20, yPos + 10);
-    
-    yPos += 25;
-    doc.setFontSize(10);
+    doc.text('Personal Information', 20, yPosition);
+    yPosition += 10;
+
+    doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
-    
-    const personalFields = [
-      ['Title:', data.personalDetails.title],
-      ['Gender:', data.personalDetails.gender],
-      ['Full Name:', `${data.personalDetails.firstName} ${data.personalDetails.middleName || ''} ${data.personalDetails.lastName}`.trim()],
-      ['Date of Birth:', data.personalDetails.dateOfBirth],
-      ['Mobile:', data.personalDetails.mobile],
-      ['Email:', data.personalDetails.email]
+    const personalDetails = [
+      `Student ID: ${data.studentId}`,
+      `Title: ${data.personalDetails.title}`,
+      `Gender: ${data.personalDetails.gender}`,
+      `First Name: ${data.personalDetails.firstName}`,
+      `Middle Name: ${data.personalDetails.middleName || 'N/A'}`,
+      `Last Name: ${data.personalDetails.lastName}`,
+      `Date of Birth: ${data.personalDetails.dateOfBirth}`,
+      `Mobile: ${data.personalDetails.mobile}`,
+      `Email: ${data.personalDetails.email}`
     ];
-    
-    personalFields.forEach(([label, value]) => {
-      doc.setFont('helvetica', 'bold');
-      doc.text(label, 20, yPos);
-      doc.setFont('helvetica', 'normal');
-      doc.text(value || '', 60, yPos);
-      yPos += 8;
+
+    personalDetails.forEach(detail => {
+      doc.text(detail, 20, yPosition);
+      yPosition += 7;
     });
-    
-    // Address Section
-    yPos += 10;
+    yPosition += 10;
+
+    // Address Information
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text('Address', 20, yPos);
-    
-    yPos += 15;
-    doc.setFontSize(10);
+    doc.text('Address Information', 20, yPosition);
+    yPosition += 10;
+
+    doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
-    
-    const address = data.personalDetails.address;
-    const addressText = `${address.houseNumber} ${address.streetName}, ${address.suburb} ${address.state} ${address.postcode}`;
-    doc.text(addressText, 20, yPos);
-    
-    if (address.postalAddress) {
-      yPos += 8;
-      doc.text(`Postal Address: ${address.postalAddress}`, 20, yPos);
-    }
-    
-    // Course Details Section
-    yPos += 20;
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Course Details', 20, yPos);
-    
-    yPos += 15;
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    
-    const courseFields = [
-      ['Course:', data.courseDetails.courseName],
-      ['Delivery Mode:', data.courseDetails.deliveryMode],
-      ['Start Date:', data.courseDetails.startDate]
+    const addressDetails = [
+      `House Number: ${data.personalDetails.address.houseNumber}`,
+      `Street Name: ${data.personalDetails.address.streetName}`,
+      `Suburb: ${data.personalDetails.address.suburb}`,
+      `Postcode: ${data.personalDetails.address.postcode}`,
+      `State: ${data.personalDetails.address.state}`,
+      `Postal Address: ${data.personalDetails.address.postalAddress || 'Same as above'}`
     ];
-    
-    courseFields.forEach(([label, value]) => {
-      doc.setFont('helvetica', 'bold');
-      doc.text(label, 20, yPos);
-      doc.setFont('helvetica', 'normal');
-      doc.text(value || '', 60, yPos);
-      yPos += 8;
+
+    addressDetails.forEach(detail => {
+      doc.text(detail, 20, yPosition);
+      yPosition += 7;
     });
-    
-    // Background Information (new page if needed)
-    if (yPos > 200) {
+    yPosition += 10;
+
+    // Course Information
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Course Information', 20, yPosition);
+    yPosition += 10;
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    const courseDetails = [
+      `Course Name: ${data.courseDetails.courseName}`,
+      `Delivery Mode: ${data.courseDetails.deliveryMode}`,
+      `Start Date: ${data.courseDetails.startDate}`
+    ];
+
+    courseDetails.forEach(detail => {
+      doc.text(detail, 20, yPosition);
+      yPosition += 7;
+    });
+    yPosition += 10;
+
+    // Check if we need a new page
+    if (yPosition > 250) {
       doc.addPage();
-      yPos = this.addHeader(doc, 'Student Enrollment Form (continued)');
+      yPosition = 20;
     }
-    
-    yPos += 10;
+
+    // Background Information
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text('Background Information', 20, yPos);
-    
-    yPos += 15;
-    doc.setFontSize(10);
+    doc.text('Background Information', 20, yPosition);
+    yPosition += 10;
+
+    doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
-    
-    const backgroundFields = [
-      ['Emergency Contact:', data.background.emergencyContact],
-      ['Country of Birth:', data.background.countryOfBirth],
-      ['Country of Citizenship:', data.background.countryOfCitizenship],
-      ['Main Language:', data.background.mainLanguage],
-      ['English Proficiency:', data.background.englishProficiency],
-      ['Australian Citizen:', data.background.australianCitizen ? 'Yes' : 'No'],
-      ['Aboriginal Status:', data.background.aboriginalStatus],
-      ['Employment Status:', data.background.employmentStatus],
-      ['Secondary School:', data.background.secondarySchool ? 'Yes' : 'No'],
-      ['School Level:', data.background.schoolLevel],
-      ['Qualifications:', data.background.qualifications],
-      ['Disability:', data.background.disability ? 'Yes' : 'No'],
-      ['Course Reason:', data.background.courseReason]
+    const backgroundDetails = [
+      `Emergency Contact: ${data.background.emergencyContact}`,
+      `Country of Birth: ${data.background.countryOfBirth}`,
+      `Country of Citizenship: ${data.background.countryOfCitizenship}`,
+      `Main Language: ${data.background.mainLanguage}`,
+      `English Proficiency: ${data.background.englishProficiency}`,
+      `Australian Citizen: ${data.background.australianCitizen ? 'Yes' : 'No'}`,
+      `Aboriginal Status: ${data.background.aboriginalStatus}`,
+      `Employment Status: ${data.background.employmentStatus}`,
+      `Secondary School Completed: ${data.background.secondarySchool ? 'Yes' : 'No'}`,
+      `School Level: ${data.background.schoolLevel}`,
+      `Qualifications: ${data.background.qualifications}`,
+      `Disability: ${data.background.disability ? 'Yes' : 'No'}`,
+      `Course Reason: ${data.background.courseReason}`
     ];
-    
-    backgroundFields.forEach(([label, value]) => {
-      if (yPos > 270) {
+
+    backgroundDetails.forEach(detail => {
+      if (yPosition > 270) {
         doc.addPage();
-        yPos = this.addHeader(doc, 'Student Enrollment Form (continued)');
+        yPosition = 20;
       }
-      
-      doc.setFont('helvetica', 'bold');
-      doc.text(label, 20, yPos);
-      doc.setFont('helvetica', 'normal');
-      doc.text(value || '', 70, yPos, { maxWidth: 120 });
-      yPos += 8;
+      doc.text(detail, 20, yPosition);
+      yPosition += 7;
     });
-    
-    // Compliance Section
-    yPos += 15;
+
+    this.createFooter(doc);
+    return Buffer.from(doc.output('arraybuffer'));
+  }
+
+  generateDeclarationForm(data: EnrollmentData): Buffer {
+    const doc = new jsPDF();
+    let yPosition = this.createHeader(doc, 'Student Declaration and Compliance Forms');
+
+    // Student Information
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text('Legal Compliance', 20, yPos);
-    
-    yPos += 15;
-    doc.setFontSize(10);
+    doc.text('Student Information', 20, yPosition);
+    yPosition += 10;
+
+    doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
+    doc.text(`Student ID: ${data.studentId}`, 20, yPosition);
+    yPosition += 7;
+    doc.text(`Name: ${data.personalDetails.firstName} ${data.personalDetails.lastName}`, 20, yPosition);
+    yPosition += 7;
+    doc.text(`Email: ${data.personalDetails.email}`, 20, yPosition);
+    yPosition += 15;
+
+    // Privacy Declaration
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Privacy Declaration', 20, yPosition);
+    yPosition += 10;
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    const privacyText = 'I acknowledge that I have read and understood the Privacy Policy and consent to the collection, use, and disclosure of my personal information as outlined in the policy.';
+    const splitPrivacyText = doc.splitTextToSize(privacyText, 170);
+    doc.text(splitPrivacyText, 20, yPosition);
+    yPosition += splitPrivacyText.length * 7 + 5;
     
-    const complianceFields = [
-      ['USI:', data.compliance.usi || 'Not provided'],
-      ['Privacy Declaration Signed:', data.compliance.privacyDate],
-      ['Student Declaration Signed:', data.compliance.declarationDate],
-      ['Policy Agreement Signed:', data.compliance.policyDate]
-    ];
+    doc.text(`Signature Date: ${data.compliance.privacyDate}`, 20, yPosition);
+    yPosition += 7;
+    doc.text('Digital Signature: Accepted', 20, yPosition);
+    yPosition += 15;
+
+    // Student Declaration
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Student Declaration', 20, yPosition);
+    yPosition += 10;
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    const declarationText = 'I declare that the information provided in this application is true and complete. I understand that providing false or misleading information may result in the rejection of my application or cancellation of my enrollment.';
+    const splitDeclarationText = doc.splitTextToSize(declarationText, 170);
+    doc.text(splitDeclarationText, 20, yPosition);
+    yPosition += splitDeclarationText.length * 7 + 5;
     
-    complianceFields.forEach(([label, value]) => {
+    doc.text(`Signature Date: ${data.compliance.declarationDate}`, 20, yPosition);
+    yPosition += 7;
+    doc.text('Digital Signature: Accepted', 20, yPosition);
+    yPosition += 15;
+
+    // Policy Acknowledgment
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Policy Acknowledgment', 20, yPosition);
+    yPosition += 10;
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    const policyText = 'I acknowledge that I have read and understood all relevant policies including the Student Handbook, Code of Conduct, and Assessment Policy.';
+    const splitPolicyText = doc.splitTextToSize(policyText, 170);
+    doc.text(splitPolicyText, 20, yPosition);
+    yPosition += splitPolicyText.length * 7 + 5;
+    
+    doc.text(`Signature Date: ${data.compliance.policyDate}`, 20, yPosition);
+    yPosition += 7;
+    doc.text('Digital Signature: Accepted', 20, yPosition);
+    yPosition += 15;
+
+    // USI Information
+    if (data.compliance.usi) {
+      doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      doc.text(label, 20, yPos);
+      doc.text('Unique Student Identifier (USI)', 20, yPosition);
+      yPosition += 10;
+
+      doc.setFontSize(12);
       doc.setFont('helvetica', 'normal');
-      doc.text(value || '', 70, yPos);
-      yPos += 8;
+      doc.text(`USI: ${data.compliance.usi}`, 20, yPosition);
+    }
+
+    this.createFooter(doc);
+    return Buffer.from(doc.output('arraybuffer'));
+  }
+
+  generateEnrollmentSummary(data: EnrollmentData): Buffer {
+    const doc = new jsPDF();
+    let yPosition = this.createHeader(doc, 'Enrollment Summary Report');
+
+    // Summary Information
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Enrollment Summary', 20, yPosition);
+    yPosition += 10;
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    const summaryDetails = [
+      `Student ID: ${data.studentId}`,
+      `Student Name: ${data.personalDetails.firstName} ${data.personalDetails.lastName}`,
+      `Email: ${data.personalDetails.email}`,
+      `Course: ${data.courseDetails.courseName}`,
+      `Delivery Mode: ${data.courseDetails.deliveryMode}`,
+      `Start Date: ${data.courseDetails.startDate}`,
+      `Enrollment Status: ${data.status}`,
+      `Submission Date: ${new Date().toLocaleDateString()}`
+    ];
+
+    summaryDetails.forEach(detail => {
+      doc.text(detail, 20, yPosition);
+      yPosition += 7;
     });
-    
-    // Digital signatures note
-    yPos += 10;
-    doc.setFontSize(8);
-    doc.setTextColor(128, 128, 128);
-    doc.text('Note: This document contains digital signatures captured during the online enrollment process.', 20, yPos);
-    doc.text('All signatures are legally binding and have been electronically recorded with timestamps.', 20, yPos + 5);
-    
-    this.addFooter(doc, 1);
-    return doc.output('arraybuffer') as Uint8Array;
+    yPosition += 10;
+
+    // Document Checklist
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Required Documents', 20, yPosition);
+    yPosition += 10;
+
+    const documents = [
+      { name: 'Passport Bio Page', status: data.documents.passportBio ? 'Submitted' : 'Pending' },
+      { name: 'Visa Copy', status: data.documents.visaCopy ? 'Submitted' : 'Pending' },
+      { name: 'Photo ID', status: data.documents.photoId ? 'Submitted' : 'Pending' },
+      { name: 'USI Email Screenshot', status: data.documents.usiEmail ? 'Submitted' : 'Pending' },
+      { name: 'Recent Photo', status: data.documents.recentPhoto ? 'Submitted' : 'Pending' }
+    ];
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    documents.forEach(docItem => {
+      doc.text(`${docItem.name}: ${docItem.status}`, 20, yPosition);
+      yPosition += 7;
+    });
+    yPosition += 10;
+
+    // Next Steps
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Next Steps', 20, yPosition);
+    yPosition += 10;
+
+    const nextSteps = [
+      '1. Your enrollment application has been submitted successfully.',
+      '2. Our admissions team will review your application and documents.',
+      '3. You will receive a confirmation email within 2-3 business days.',
+      '4. If approved, you will receive course commencement details.',
+      '5. For any queries, please contact our admissions team.'
+    ];
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    nextSteps.forEach(step => {
+      doc.text(step, 20, yPosition);
+      yPosition += 7;
+    });
+
+    this.createFooter(doc);
+    return Buffer.from(doc.output('arraybuffer'));
   }
 }

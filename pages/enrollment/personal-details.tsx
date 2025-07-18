@@ -64,13 +64,13 @@ const PersonalDetailsPage = () => {
     defaultValues: {
       deliveryMode: 'Blended',
       englishProficiency: 'Very well',
-      australianCitizen: 'true', // FIXED: String instead of boolean
+      australianCitizen: true, // FIXED: String instead of boolean
       aboriginalStatus: 'No',
       employmentStatus: 'Full-time',
-      secondarySchool: 'false', // FIXED: String instead of boolean
+      secondarySchool: false, // FIXED: String instead of boolean
       schoolLevel: 'Year 12',
       qualifications: 'None',
-      disability: 'false', // FIXED: String instead of boolean
+      disability: false, // FIXED: String instead of boolean
       courseReason: 'To get a job'
     }
   });
@@ -101,41 +101,6 @@ const PersonalDetailsPage = () => {
       router.push('/enrollment/start');
     }
   }, [router, setValue]);
-
-  // Debug component to show form validation state
-  const FormDebugInfo = () => {
-    const formValues = watch();
-    const isValid = Object.keys(errors).length === 0;
-    
-    return (
-      <div className="bg-yellow-100 border border-yellow-300 p-4 rounded-lg mb-4">
-        <h4 className="font-bold mb-2">🐛 Debug Info:</h4>
-        <p className="mb-1">Form Valid: {isValid ? '✅ Yes' : '❌ No'}</p>
-        <p className="mb-2">Errors Count: {Object.keys(errors).length}</p>
-        
-        {Object.keys(errors).length > 0 && (
-          <div className="mt-2">
-            <strong className="text-red-600">❌ Validation Errors:</strong>
-            <ul className="list-disc list-inside mt-1">
-              {Object.entries(errors).map(([field, error]) => (
-                <li key={field} className="text-red-600 text-sm">
-                  <strong>{field}:</strong> {error?.message}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-        
-        <button
-          type="button"
-          onClick={() => console.log('Current form values:', formValues)}
-          className="mt-2 px-3 py-1 bg-blue-500 text-white text-xs rounded"
-        >
-          Log Form Values to Console
-        </button>
-      </div>
-    );
-  };
 
   const onSubmit = async (data: PersonalDetailsForm) => {
     console.log('🚀 Form submission started');
@@ -246,8 +211,6 @@ const PersonalDetailsPage = () => {
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-            {/* DEBUG INFO - Remove this after fixing */}
-            <FormDebugInfo />
 
             {/* Personal Information */}
             <div>

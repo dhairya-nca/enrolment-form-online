@@ -133,26 +133,6 @@ const LLNResultsPage = () => {
             </div>
           </div>
 
-          {/* Detailed Scores */}
-          {llnResults.scores && (
-            <div className="mb-8">
-              <h3 className="text-lg font-semibold text-nca-gray-900 mb-4">Detailed Breakdown</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                {Object.entries(llnResults.scores).map(([skill, score]) => (
-                  <div key={skill} className="bg-white rounded-lg p-4 border border-nca-gray-200">
-                    <div className="text-center">
-                      <div className="text-xl font-bold text-nca-primary mb-1">
-                        {score}%
-                      </div>
-                      <div className="text-sm text-nca-gray-600 capitalize">
-                        {skill.replace(/([A-Z])/g, ' $1').trim()}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Student Information Recap */}
           <div className="bg-gray-50 rounded-lg p-6 mb-8">

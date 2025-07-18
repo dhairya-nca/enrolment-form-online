@@ -1,12 +1,20 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
-import Link from 'next/link';
 import { motion } from 'framer-motion';
 import LLNAssessment from '../../components/forms/LLNAssessment';
+import Header from '../../components/Header';
+import StepProgress from '../../components/StepProgress';
 
 const LLNPage = () => {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const steps = [
+    { id: 1, name: 'LLN Assessment', current: true },
+    { id: 2, name: 'Personal Details' },
+    { id: 3, name: 'Declarations' },
+    { id: 4, name: 'Documents' }
+  ];
 
   const handleLLNComplete = async (data: any) => {
     setIsSubmitting(true);
@@ -40,51 +48,41 @@ const LLNPage = () => {
 
   if (isSubmitting) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen nca-gradient flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-nca-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Processing your assessment...</p>
+          <p className="text-nca-gray-600">Processing your assessment...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen nca-gradient">
       {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center space-x-4">
-              <img 
-                src="/api/placeholder/120/60" 
-                alt="National College Australia" 
-                className="h-10 w-auto"
-              />
-              <div>
-                <h1 className="text-xl font-bold text-nca-primary">National College Australia</h1>
-                <p className="text-xs text-gray-600">LLN Assessment</p>
-              </div>
-            </Link>
-            <div className="text-right">
-              <p className="text-sm text-gray-600">Step 1 of 4</p>
-              <p className="text-xs text-gray-500">Language, Literacy & Numeracy</p>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header 
+        title="Language, Literacy & Numeracy" 
+        showProgress={true}
+        currentStep={1}
+        totalSteps={4}
+      />
 
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Progress Steps */}
+        <div className="mb-8">
+          <StepProgress steps={steps} />
+        </div>
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="bg-white rounded-xl shadow-lg p-8"
+          className="card"
         >
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-nca-primary mb-2">LLN Assessment</h2>
-            <p className="text-gray-600">
+            <p className="text-nca-gray-600">
               This assessment helps us understand your current skill level and ensure you receive 
               the appropriate support throughout your studies.
             </p>

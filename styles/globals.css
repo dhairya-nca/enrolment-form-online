@@ -18,20 +18,49 @@
 
 @layer components {
   .form-field {
-    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors;
+    @apply w-full px-4 py-3 border border-nca-gray-300 rounded-lg focus:ring-2 focus:ring-nca-primary focus:border-transparent transition-colors;
   }
   
   .btn-primary {
-    @apply bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-lg;
+    @apply bg-nca-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-nca-secondary transition-colors shadow-lg;
   }
   
   .btn-secondary {
-    @apply border-2 border-blue-600 text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-600 hover:text-white transition-colors;
+    @apply border-2 border-nca-primary text-nca-primary px-6 py-3 rounded-lg font-semibold hover:bg-nca-primary hover:text-white transition-colors;
+  }
+  
+  .btn-accent {
+    @apply bg-nca-accent text-white px-6 py-3 rounded-lg font-semibold hover:bg-nca-primary transition-colors shadow-lg;
   }
   
   .card {
-    @apply bg-white rounded-xl shadow-lg p-6;
+    @apply bg-white rounded-xl shadow-lg p-6 border border-nca-gray-100;
   }
+  
+  .nca-gradient {
+    @apply bg-gradient-to-br from-nca-light to-white;
+  }
+  
+  .nca-header {
+    @apply bg-white shadow-sm border-b border-nca-gray-100;
+  }
+  
+  .nca-footer {
+    @apply bg-nca-dark text-white;
+  }
+}
+
+/* NCA Logo styles */
+.nca-logo {
+  height: 60px;
+  width: auto;
+  max-width: 200px;
+}
+
+.nca-logo-small {
+  height: 40px;
+  width: auto;
+  max-width: 150px;
 }
 
 /* Loading animations */
@@ -57,4 +86,26 @@
 
 .animate-slide-up {
   animation: slideUp 0.3s ease-out;
+}
+
+/* Progress bar styling */
+.nca-progress {
+  @apply bg-nca-gray-200 rounded-full h-2;
+}
+
+.nca-progress-fill {
+  @apply bg-nca-primary h-2 rounded-full transition-all duration-300;
+}
+
+/* Step indicator styling */
+.nca-step-completed {
+  @apply bg-nca-primary border-nca-primary text-white;
+}
+
+.nca-step-current {
+  @apply bg-nca-accent border-nca-accent text-white;
+}
+
+.nca-step-pending {
+  @apply bg-white border-nca-gray-300 text-nca-gray-500;
 }

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import Link from 'next/link';
 import { motion } from 'framer-motion';
+import Header from '../../components/Header';
+import StepProgress from '../../components/StepProgress';
 
 const DECLARATION_POINTS = [
   "Students need to be aware about the Schedule of the classes and finish all the classes as per the given timetable in student portal.",
@@ -97,103 +98,60 @@ const DeclarationPage = () => {
 
   if (!studentData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen nca-gradient flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-nca-primary mx-auto mb-4"></div>
+          <p className="text-nca-gray-600">Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen nca-gradient">
       {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">NCA</span>
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">National College Australia</h1>
-                <p className="text-xs text-gray-600">Student Declarations</p>
-              </div>
-            </Link>
-            <div className="text-right">
-              <p className="text-sm text-gray-600">Step 3 of 4</p>
-              <p className="text-xs text-gray-500">Legal Declarations</p>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header 
+        title="Legal Declarations" 
+        showProgress={true}
+        currentStep={3}
+        totalSteps={4}
+      />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Progress Indicator */}
+        {/* Progress Steps */}
         <div className="mb-8">
-          <div className="flex items-center justify-between">
-            {steps.map((step, index) => (
-              <div key={step.id} className="flex items-center">
-                <div className="relative">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-200 ${
-                    step.completed 
-                      ? 'bg-green-500 border-green-500 text-white' 
-                      : step.current 
-                        ? 'bg-blue-600 border-blue-600 text-white' 
-                        : 'bg-white border-gray-300 text-gray-500'
-                  }`}>
-                    {step.completed ? (
-                      <span>✓</span>
-                    ) : (
-                      <span className="text-sm font-medium">{step.id}</span>
-                    )}
-                  </div>
-                  <div className="absolute top-12 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
-                    <span className={`text-xs font-medium ${step.current ? 'text-blue-600' : 'text-gray-500'}`}>
-                      {step.name}
-                    </span>
-                  </div>
-                </div>
-                {index < steps.length - 1 && (
-                  <div className={`flex-1 h-0.5 mx-4 transition-all duration-200 ${
-                    step.completed ? 'bg-green-500' : 'bg-gray-300'
-                  }`} />
-                )}
-              </div>
-            ))}
-          </div>
+          <StepProgress steps={steps} />
         </div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="bg-white rounded-xl shadow-lg p-8"
+          className="card"
         >
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">Student Declaration</h2>
-            <p className="text-gray-600">
+            <h2 className="text-3xl font-bold text-nca-gray-900 mb-2">Student Declaration</h2>
+            <p className="text-nca-gray-600">
               Please read and agree to the following terms and conditions
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Document Links */}
-            <div className="bg-blue-50 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Required Reading</h3>
-              <p className="text-gray-600 mb-4">
+            <div className="bg-nca-light rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-nca-gray-900 mb-4">Required Reading</h3>
+              <p className="text-nca-gray-600 mb-4">
                 Please download and read the following documents before proceeding:
               </p>
               <div className="space-y-3">
                 <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+                  <div className="w-8 h-8 bg-nca-primary rounded flex items-center justify-center">
                     <span className="text-white text-sm">📄</span>
                   </div>
                   <div>
                     <a 
                       href="#" 
-                      className="text-blue-600 hover:underline font-medium"
+                      className="text-nca-primary hover:underline font-medium"
                       onClick={(e) => {
                         e.preventDefault();
                         alert('Document download would be implemented here');
@@ -201,17 +159,17 @@ const DeclarationPage = () => {
                     >
                       Student Policy Handbook
                     </a>
-                    <p className="text-sm text-gray-500">Complete policies and procedures</p>
+                    <p className="text-sm text-nca-gray-500">Complete policies and procedures</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+                  <div className="w-8 h-8 bg-nca-primary rounded flex items-center justify-center">
                     <span className="text-white text-sm">📋</span>
                   </div>
                   <div>
                     <a 
                       href="#" 
-                      className="text-blue-600 hover:underline font-medium"
+                      className="text-nca-primary hover:underline font-medium"
                       onClick={(e) => {
                         e.preventDefault();
                         alert('Document download would be implemented here');
@@ -219,7 +177,7 @@ const DeclarationPage = () => {
                     >
                       Student Code of Conduct
                     </a>
-                    <p className="text-sm text-gray-500">Expected behavior and responsibilities</p>
+                    <p className="text-sm text-nca-gray-500">Expected behavior and responsibilities</p>
                   </div>
                 </div>
               </div>
@@ -230,9 +188,9 @@ const DeclarationPage = () => {
                     type="checkbox"
                     checked={formData.readPolicy}
                     onChange={(e) => setFormData(prev => ({ ...prev, readPolicy: e.target.checked }))}
-                    className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    className="mt-1 h-4 w-4 text-nca-primary focus:ring-nca-primary border-nca-gray-300 rounded"
                   />
-                  <span className="text-gray-700">
+                  <span className="text-nca-gray-700">
                     I have read and understood the Student Policy Handbook
                   </span>
                 </label>
@@ -241,9 +199,9 @@ const DeclarationPage = () => {
                     type="checkbox"
                     checked={formData.readHandbook}
                     onChange={(e) => setFormData(prev => ({ ...prev, readHandbook: e.target.checked }))}
-                    className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    className="mt-1 h-4 w-4 text-nca-primary focus:ring-nca-primary border-nca-gray-300 rounded"
                   />
-                  <span className="text-gray-700">
+                  <span className="text-nca-gray-700">
                     I have read and understood the Student Code of Conduct
                   </span>
                 </label>
@@ -252,17 +210,17 @@ const DeclarationPage = () => {
 
             {/* Declaration Points */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Student Declaration</h3>
-              <div className="bg-gray-50 rounded-lg p-6 max-h-96 overflow-y-auto">
-                <p className="text-gray-700 mb-4 font-medium">
+              <h3 className="text-lg font-semibold text-nca-gray-900 mb-4">Student Declaration</h3>
+              <div className="bg-nca-gray-50 rounded-lg p-6 max-h-96 overflow-y-auto">
+                <p className="text-nca-gray-700 mb-4 font-medium">
                   I declare that I hereby understand and comply with the following information, and I take full 
                   responsibility for all of my actions related to the following information:
                 </p>
                 <ul className="space-y-3">
                   {DECLARATION_POINTS.map((point, index) => (
                     <li key={index} className="flex items-start space-x-3">
-                      <span className="text-blue-600 font-medium mt-1">•</span>
-                      <span className="text-gray-700 text-sm leading-relaxed">{point}</span>
+                      <span className="text-nca-primary font-medium mt-1">•</span>
+                      <span className="text-nca-gray-700 text-sm leading-relaxed">{point}</span>
                     </li>
                   ))}
                 </ul>
@@ -274,9 +232,9 @@ const DeclarationPage = () => {
                     type="checkbox"
                     checked={formData.agreesToDeclaration}
                     onChange={(e) => setFormData(prev => ({ ...prev, agreesToDeclaration: e.target.checked }))}
-                    className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    className="mt-1 h-4 w-4 text-nca-primary focus:ring-nca-primary border-nca-gray-300 rounded"
                   />
-                  <span className="text-gray-700">
+                  <span className="text-nca-gray-700">
                     I have read, understood, and agree to all the above declarations and conditions
                   </span>
                 </label>
@@ -284,36 +242,36 @@ const DeclarationPage = () => {
             </div>
 
             {/* Signature Section */}
-            <div className="bg-yellow-50 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Digital Signature</h3>
+            <div className="bg-nca-light rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-nca-gray-900 mb-4">Digital Signature</h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-nca-gray-700 mb-2">
                     Full Name as Signature *
                   </label>
                   <input
                     type="text"
                     value={formData.signatureName}
                     onChange={(e) => setFormData(prev => ({ ...prev, signatureName: e.target.value }))}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                    className="form-field"
                     placeholder="Type your full legal name"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-nca-gray-700 mb-2">
                     Date *
                   </label>
                   <input
                     type="date"
                     value={formData.signatureDate}
                     onChange={(e) => setFormData(prev => ({ ...prev, signatureDate: e.target.value }))}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                    className="form-field"
                     required
                   />
                 </div>
               </div>
-              <p className="text-sm text-gray-500 mt-4">
+              <p className="text-sm text-nca-gray-500 mt-4">
                 By typing your name above, you are providing a legally binding electronic signature.
               </p>
             </div>
@@ -323,7 +281,7 @@ const DeclarationPage = () => {
               <button
                 type="button"
                 onClick={() => router.back()}
-                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                className="px-6 py-3 border border-nca-gray-300 text-nca-gray-700 rounded-lg hover:bg-nca-gray-50 transition-colors"
               >
                 Back to Personal Details
               </button>
@@ -331,7 +289,7 @@ const DeclarationPage = () => {
               <button
                 type="submit"
                 disabled={isSubmitting || !formData.readPolicy || !formData.readHandbook || !formData.agreesToDeclaration || !formData.signatureName}
-                className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? 'Saving...' : 'Continue to Documents'}
               </button>

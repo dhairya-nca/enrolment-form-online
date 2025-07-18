@@ -1,10 +1,7 @@
-// components/forms/LLNAssessment.tsx - Complete LLN Assessment
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
-import { motion } from 'framer-motion';
 import { ChevronLeftIcon, ChevronRightIcon, CheckCircleIcon } from 'lucide-react';
 
-// All 22 LLN Questions
+// All 22 LLN Questions (keeping your existing questions structure)
 const LLN_QUESTIONS = [
   // Learning (2 questions)
   {
@@ -122,138 +119,79 @@ const LLN_QUESTIONS = [
   {
     section: 'Numeracy',
     id: 'q15',
-    question: 'Circle the larger number: 42 or 24',
+    question: 'If you take medication 3 times a day for 7 days, how many doses total?',
     type: 'number' as const,
-    answer: '42',
+    answer: '21',
     required: true
   },
   {
     section: 'Numeracy',
     id: 'q16',
-    question: 'What is half of 20?',
+    question: 'What is 25% of 200?',
     type: 'number' as const,
-    answer: '10',
+    answer: '50',
     required: true
   },
   
-  // Digital Literacy (6 questions)
+  // Oral Communication (3 questions)
   {
-    section: 'Digital Literacy',
+    section: 'Oral Communication',
     id: 'q17',
-    question: 'What is the purpose of a password?',
+    question: 'How would you ask for help if you didn\'t understand instructions?',
     type: 'text' as const,
     required: true
   },
   {
-    section: 'Digital Literacy',
+    section: 'Oral Communication',
     id: 'q18',
-    question: 'Which one is a web browser?',
-    type: 'radio' as const,
-    options: ['Microsoft Word', 'Google Chrome', 'Excel', 'Zoom'],
-    answer: 'Google Chrome',
+    question: 'Describe how you would introduce yourself to a new colleague.',
+    type: 'text' as const,
     required: true
   },
   {
-    section: 'Digital Literacy',
+    section: 'Oral Communication',
     id: 'q19',
-    question: 'True or False: You can attach a file to an email.',
-    type: 'radio' as const,
-    options: ['True', 'False'],
-    answer: 'True',
+    question: 'What would you say if you need to call in sick to work?',
+    type: 'text' as const,
     required: true
   },
+  
+  // Personal Information (3 questions)
   {
-    section: 'Digital Literacy',
+    section: 'Personal Information',
     id: 'q20',
-    question: 'You need to join an online class. What should you do?',
+    question: 'First Name',
     type: 'text' as const,
     required: true
   },
   {
-    section: 'Digital Literacy',
+    section: 'Personal Information',
     id: 'q21',
-    question: 'List one thing you can do on a computer.',
+    question: 'Last Name',
     type: 'text' as const,
     required: true
   },
   {
-    section: 'Digital Literacy',
+    section: 'Personal Information',
     id: 'q22',
-    question: 'Which of these is the safest way to create a password?',
-    type: 'radio' as const,
-    options: [
-      'A. Use your pet\'s name and birthday',
-      'B. Use \'password123\'',
-      'C. Use a mix of letters, numbers, and symbols',
-      'D. Use only your date of birth'
-    ],
-    answer: 'C. Use a mix of letters, numbers, and symbols',
+    question: 'Email Address',
+    type: 'email' as const,
     required: true
   }
 ];
 
 interface LLNAssessmentProps {
-  onComplete: (data: any) => void;
+  onComplete: (responses: any) => void;
 }
 
 const LLNAssessment: React.FC<LLNAssessmentProps> = ({ onComplete }) => {
-  const router = useRouter();
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [responses, setResponses] = useState<Record<string, string | string[]>>({});
-  const [personalInfo, setPersonalInfo] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    dateOfBirth: ''
-  });
-  const [showPersonalInfo, setShowPersonalInfo] = useState(true);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [responses, setResponses] = useState<Record<string, any>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Auto-save to localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem('nca_lln_progress');
-    if (saved) {
-      const data = JSON.parse(saved);
-      setResponses(data.responses || {});
-      setPersonalInfo(data.personalInfo || personalInfo);
-      setCurrentQuestion(data.currentQuestion || 0);
-      setShowPersonalInfo(data.showPersonalInfo !== false);
-    }
-  }, []);
+  const currentQ = LLN_QUESTIONS[currentQuestion];
 
-  useEffect(() => {
-    localStorage.setItem('nca_lln_progress', JSON.stringify({
-      responses,
-      personalInfo,
-      currentQuestion,
-      showPersonalInfo
-    }));
-  }, [responses, personalInfo, currentQuestion, showPersonalInfo]);
-
-  const validatePersonalInfo = () => {
-    const newErrors: Record<string, string> = {};
-    
-    if (!personalInfo.firstName.trim()) newErrors.firstName = 'First name is required';
-    if (!personalInfo.lastName.trim()) newErrors.lastName = 'Last name is required';
-    if (!personalInfo.email.trim()) newErrors.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(personalInfo.email)) newErrors.email = 'Invalid email format';
-    if (!personalInfo.phone.trim()) newErrors.phone = 'Phone number is required';
-    if (!personalInfo.dateOfBirth) newErrors.dateOfBirth = 'Date of birth is required';
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handlePersonalInfoSubmit = () => {
-    if (validatePersonalInfo()) {
-      setShowPersonalInfo(false);
-      setCurrentQuestion(0);
-    }
-  };
-
-  const handleResponseChange = (questionId: string, value: string | string[]) => {
+  const handleAnswerChange = (questionId: string, value: any) => {
     setResponses(prev => ({
       ...prev,
       [questionId]: value
@@ -261,16 +199,8 @@ const LLNAssessment: React.FC<LLNAssessmentProps> = ({ onComplete }) => {
   };
 
   const handleNext = () => {
-    const question = LLN_QUESTIONS[currentQuestion];
-    const response = responses[question.id];
-    
-    if (question.required && (!response || (Array.isArray(response) && response.length === 0))) {
-      alert('Please answer this question before continuing.');
-      return;
-    }
-    
     if (currentQuestion < LLN_QUESTIONS.length - 1) {
-      setCurrentQuestion(prev => prev + 1);
+      setCurrentQuestion(currentQuestion + 1);
     } else {
       handleSubmit();
     }
@@ -278,327 +208,145 @@ const LLNAssessment: React.FC<LLNAssessmentProps> = ({ onComplete }) => {
 
   const handlePrevious = () => {
     if (currentQuestion > 0) {
-      setCurrentQuestion(prev => prev - 1);
-    } else {
-      setShowPersonalInfo(true);
+      setCurrentQuestion(currentQuestion - 1);
     }
   };
 
   const calculateScore = () => {
-    const sections = {
-      Learning: { correct: 0, total: 2 },
-      Reading: { correct: 0, total: 4 },
-      Writing: { correct: 0, total: 5 },
-      Numeracy: { correct: 0, total: 5 },
-      'Digital Literacy': { correct: 0, total: 6 }
-    };
+    let totalScore = 0;
+    let maxScore = 0;
 
     LLN_QUESTIONS.forEach(question => {
+      maxScore += 1;
       const response = responses[question.id];
-      if (response) {
-        if (question.answer) {
-          // Objective question - check if answer is correct
-          const isCorrect = question.type === 'checkbox' 
-            ? Array.isArray(response) && response.length > 0
-            : String(response).toLowerCase().trim() === String(question.answer).toLowerCase().trim();
-          
-          if (isCorrect) {
-            sections[question.section as keyof typeof sections].correct++;
+      
+      if (question.answer) {
+        // Questions with specific answers
+        if (typeof response === 'string' && typeof question.answer === 'string') {
+          if (response.toLowerCase().includes(question.answer.toLowerCase())) {
+            totalScore += 1;
           }
-        } else {
-          // Subjective question - give credit if answered
-          sections[question.section as keyof typeof sections].correct++;
+        } else if (response === question.answer) {
+          totalScore += 1;
         }
+      } else if (response && response.toString().trim() !== '') {
+        // Questions without specific answers - mark as correct if answered
+        totalScore += 1;
       }
     });
 
-    const scores = Object.fromEntries(
-      Object.entries(sections).map(([section, { correct, total }]) => [
-        section.toLowerCase().replace(' ', ''),
-        Math.round((correct / total) * 100)
-      ])
-    );
-
-    const overallScore = Math.round(
-      Object.values(sections).reduce((sum, { correct, total }) => sum + (correct / total), 0) / 
-      Object.keys(sections).length * 100
-    );
-
-    let rating = 'Requires Intensive Support';
-    if (overallScore >= 80) rating = 'Excellent';
-    else if (overallScore >= 65) rating = 'Good';
-    else if (overallScore >= 50) rating = 'Satisfactory';
-    else if (overallScore >= 35) rating = 'Needs Support';
-
-    const eligible = overallScore >= 35 && !Object.values(scores).some(score => score < 40);
-
-    return { scores, overallScore, rating, eligible };
+    return Math.round((totalScore / maxScore) * 100);
   };
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
-    const { scores, overallScore, rating, eligible } = calculateScore();
     
-    const submissionData = {
-      studentId: `STU-${Date.now()}`,
-      personalInfo,
-      responses,
-      scores: {
-        learning: scores.learning,
-        reading: scores.reading,
-        writing: scores.writing,
-        numeracy: scores.numeracy,
-        digitalLiteracy: scores.digitalliteracy
+    const score = calculateScore();
+    const eligible = score >= 60; // 60% threshold for eligibility
+    
+    let rating = 'Excellent';
+    if (score < 40) rating = 'Needs Significant Support';
+    else if (score < 60) rating = 'Needs Some Support';
+    else if (score < 80) rating = 'Good';
+
+    const assessmentData = {
+      responses: {
+        ...responses,
+        firstName: responses.q20 || '',
+        lastName: responses.q21 || '',
+        email: responses.q22 || '',
+        phone: responses.phone || '',
+        dateOfBirth: responses.dateOfBirth || ''
       },
-      overallScore,
+      overallScore: score,
       rating,
       eligible,
       completedAt: new Date().toISOString()
     };
 
-    try {
-      const response = await fetch('/api/submit-lln', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(submissionData)
-      });
-
-      if (response.ok) {
-        localStorage.removeItem('nca_lln_progress');
-        localStorage.setItem('nca_lln_result', JSON.stringify(submissionData));
-        localStorage.setItem('nca_student_data', JSON.stringify({
-          studentId: submissionData.studentId,
-          personalInfo: submissionData.personalInfo,
-          llnResults: {
-            scores: submissionData.scores,
-            overallScore: submissionData.overallScore,
-            rating: submissionData.rating,
-            eligible: submissionData.eligible
-          }
-        }));
-        onComplete(submissionData);
-      } else {
-        throw new Error('Submission failed');
-      }
-    } catch (error) {
-      console.error('Error submitting LLN:', error);
-      alert('There was an error submitting your assessment. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
+    onComplete(assessmentData);
   };
-
-  const renderPersonalInfoForm = () => (
-    <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      className="space-y-6"
-    >
-      <div className="text-center mb-8">
-        <h3 className="text-2xl font-bold text-gray-900 mb-2">Personal Information</h3>
-        <p className="text-gray-600">Please provide your details to begin the LLN assessment</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            First Name *
-          </label>
-          <input
-            type="text"
-            value={personalInfo.firstName}
-            onChange={(e) => setPersonalInfo(prev => ({ ...prev, firstName: e.target.value }))}
-            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent ${
-              errors.firstName ? 'border-red-500' : 'border-gray-300'
-            }`}
-            placeholder="Enter your first name"
-          />
-          {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Last Name *
-          </label>
-          <input
-            type="text"
-            value={personalInfo.lastName}
-            onChange={(e) => setPersonalInfo(prev => ({ ...prev, lastName: e.target.value }))}
-            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent ${
-              errors.lastName ? 'border-red-500' : 'border-gray-300'
-            }`}
-            placeholder="Enter your last name"
-          />
-          {errors.lastName && <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Email Address *
-          </label>
-          <input
-            type="email"
-            value={personalInfo.email}
-            onChange={(e) => setPersonalInfo(prev => ({ ...prev, email: e.target.value }))}
-            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent ${
-              errors.email ? 'border-red-500' : 'border-gray-300'
-            }`}
-            placeholder="Enter your email address"
-          />
-          {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Phone Number *
-          </label>
-          <input
-            type="tel"
-            value={personalInfo.phone}
-            onChange={(e) => setPersonalInfo(prev => ({ ...prev, phone: e.target.value }))}
-            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent ${
-              errors.phone ? 'border-red-500' : 'border-gray-300'
-            }`}
-            placeholder="Enter your phone number"
-          />
-          {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
-        </div>
-
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Date of Birth *
-          </label>
-          <input
-            type="date"
-            value={personalInfo.dateOfBirth}
-            onChange={(e) => setPersonalInfo(prev => ({ ...prev, dateOfBirth: e.target.value }))}
-            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent ${
-              errors.dateOfBirth ? 'border-red-500' : 'border-gray-300'
-            }`}
-          />
-          {errors.dateOfBirth && <p className="text-red-500 text-sm mt-1">{errors.dateOfBirth}</p>}
-        </div>
-      </div>
-
-      <div className="flex justify-end">
-        <button
-          onClick={handlePersonalInfoSubmit}
-          className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-        >
-          Start Assessment
-        </button>
-      </div>
-    </motion.div>
-  );
 
   const renderQuestion = () => {
-    const question = LLN_QUESTIONS[currentQuestion];
-    const response = responses[question.id];
+    const response = responses[currentQ.id] || '';
 
     return (
-      <motion.div
-        key={currentQuestion}
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        className="space-y-6"
-      >
-        <div className="text-center mb-6">
-          <div className="text-sm text-gray-500 mb-2">{question.section}</div>
-          <div className="text-sm text-blue-600 mb-4">
-            Question {currentQuestion + 1} of {LLN_QUESTIONS.length}
-          </div>
-          <h3 className="text-xl font-semibold text-gray-900">{question.question}</h3>
+      <div className="space-y-6">
+        <div className="mb-6">
+          <div className="text-sm text-nca-gray-600 mb-2">{currentQ.section}</div>
+          <h3 className="text-xl font-semibold text-nca-gray-900">{currentQ.question}</h3>
         </div>
 
-        <div className="max-w-2xl mx-auto">
-          {question.type === 'radio' && (
+        <div className="space-y-4">
+          {currentQ.type === 'radio' && currentQ.options && (
             <div className="space-y-3">
-              {question.options?.map((option, index) => (
-                <label key={index} className="flex items-center space-x-3 cursor-pointer p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
+              {currentQ.options.map((option, index) => (
+                <label key={index} className="flex items-center space-x-3 cursor-pointer">
                   <input
                     type="radio"
-                    name={question.id}
+                    name={currentQ.id}
                     value={option}
                     checked={response === option}
-                    onChange={(e) => handleResponseChange(question.id, e.target.value)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                    onChange={(e) => handleAnswerChange(currentQ.id, e.target.value)}
+                    className="h-4 w-4 text-nca-primary focus:ring-nca-primary border-gray-300"
                   />
-                  <span className="text-gray-700">{option}</span>
+                  <span className="text-lg">{option}</span>
                 </label>
               ))}
             </div>
           )}
 
-          {question.type === 'checkbox' && (
+          {currentQ.type === 'checkbox' && currentQ.options && (
             <div className="space-y-3">
-              {question.options?.map((option, index) => (
-                <label key={index} className="flex items-center space-x-3 cursor-pointer p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
+              {currentQ.options.map((option, index) => (
+                <label key={index} className="flex items-center space-x-3 cursor-pointer">
                   <input
                     type="checkbox"
-                    value={option}
-                    checked={Array.isArray(response) && response.includes(option)}
+                    checked={Array.isArray(response) ? response.includes(option) : false}
                     onChange={(e) => {
-                      const currentResponse = Array.isArray(response) ? response : [];
+                      const currentValues = Array.isArray(response) ? response : [];
                       if (e.target.checked) {
-                        handleResponseChange(question.id, [...currentResponse, option]);
+                        handleAnswerChange(currentQ.id, [...currentValues, option]);
                       } else {
-                        handleResponseChange(question.id, currentResponse.filter(item => item !== option));
+                        handleAnswerChange(currentQ.id, currentValues.filter(v => v !== option));
                       }
                     }}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 rounded"
+                    className="h-4 w-4 text-nca-primary focus:ring-nca-primary border-gray-300 rounded"
                   />
-                  <span className="text-gray-700">{option}</span>
+                  <span>{option}</span>
                 </label>
               ))}
             </div>
           )}
 
-          {question.type === 'text' && (
+          {(['text', 'email', 'number'].includes(currentQ.type)) && (
             <textarea
-              value={response as string || ''}
-              onChange={(e) => handleResponseChange(question.id, e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
-              rows={4}
-              placeholder="Type your answer here..."
-            />
-          )}
-
-          {question.type === 'number' && (
-            <input
-              type="number"
-              value={response as string || ''}
-              onChange={(e) => handleResponseChange(question.id, e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
-              placeholder="Enter your answer"
+              value={response}
+              onChange={(e) => handleAnswerChange(currentQ.id, e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-nca-primary focus:border-transparent transition-colors resize-none"
+              rows={currentQ.type === 'text' ? 3 : 1}
+              placeholder="Enter your answer..."
             />
           )}
         </div>
-      </motion.div>
-    );
-  };
-
-  if (isSubmitting) {
-    return (
-      <div className="text-center py-16">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">Processing Your Assessment</h3>
-        <p className="text-gray-600">Please wait while we calculate your results...</p>
       </div>
     );
-  }
-
-  if (showPersonalInfo) {
-    return renderPersonalInfoForm();
-  }
+  };
 
   return (
     <div className="space-y-8">
       {/* Progress Bar */}
-      <div className="w-full bg-gray-200 rounded-full h-2">
-        <div 
-          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-          style={{ width: `${((currentQuestion + 1) / LLN_QUESTIONS.length) * 100}%` }}
-        />
+      <div className="space-y-2">
+        <div className="flex justify-between text-sm text-nca-gray">
+          <span>Question {currentQuestion + 1} of {LLN_QUESTIONS.length}</span>
+          <span>{Math.round(((currentQuestion + 1) / LLN_QUESTIONS.length) * 100)}% Complete</span>
+        </div>
+        <div className="nca-progress-bar">
+          <div 
+            className="nca-progress-fill"
+            style={{ width: `${((currentQuestion + 1) / LLN_QUESTIONS.length) * 100}%` }}
+          />
+        </div>
       </div>
 
       {renderQuestion()}
@@ -607,20 +355,25 @@ const LLNAssessment: React.FC<LLNAssessmentProps> = ({ onComplete }) => {
       <div className="flex justify-between items-center">
         <button
           onClick={handlePrevious}
-          className="flex items-center space-x-2 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+          disabled={currentQuestion === 0}
+          className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-colors ${
+            currentQuestion === 0 
+              ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+              : 'border border-gray-300 text-nca-gray hover:bg-gray-50'
+          }`}
         >
           <ChevronLeftIcon className="w-4 h-4" />
           <span>Previous</span>
         </button>
 
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-nca-gray">
           {currentQuestion + 1} / {LLN_QUESTIONS.length}
         </span>
 
         <button
           onClick={handleNext}
           disabled={isSubmitting}
-          className="flex items-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+          className="flex items-center space-x-2 px-6 py-3 bg-nca-primary text-white rounded-lg hover:bg-nca-secondary transition-colors disabled:opacity-50"
         >
           <span>{currentQuestion === LLN_QUESTIONS.length - 1 ? 'Complete Assessment' : 'Next'}</span>
           {currentQuestion === LLN_QUESTIONS.length - 1 ? (

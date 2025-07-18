@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import Link from 'next/link';
 import { motion } from 'framer-motion';
+import Header from '../../components/Header';
+import NCALogo from '../../components/NCALogo';
+import StepProgress from '../../components/StepProgress';
 
 const REQUIRED_DOCUMENTS = [
   {
@@ -77,130 +79,64 @@ const DocumentsPage = () => {
     setIsSubmitting(true);
 
     try {
-      // Prepare document links
-      const documentLinks = Object.fromEntries(
-        Object.entries(uploads).map(([docId, uploaded]) => [
-          docId,
-          uploaded ? `https://mock-storage.com/documents/${docId}_${Date.now()}.pdf` : null
-        ])
-      );
-
-      const finalStudentData = {
+      // Simulate final submission
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      const completedData = {
         ...studentData,
-        documents: documentLinks,
-        status: 'complete',
-        submittedAt: new Date().toISOString()
+        documents: uploads,
+        status: 'enrollment-complete',
+        completedAt: new Date().toISOString()
       };
 
-      // Submit to backend (mock)
-      console.log('Submitting enrollment data:', finalStudentData);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      localStorage.setItem('nca_final_submission', JSON.stringify(finalStudentData));
-      localStorage.removeItem('nca_student_data');
+      localStorage.setItem('nca_student_data', JSON.stringify(completedData));
       router.push('/enrollment/complete');
 
     } catch (error) {
-      console.error('Error submitting enrollment:', error);
-      alert('There was an error submitting your enrollment. Please try again.');
+      console.error('Error completing enrollment:', error);
+      alert('There was an error completing your enrollment. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (!studentData) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
   const uploadedCount = Object.values(uploads).filter(Boolean).length;
   const allDocumentsUploaded = uploadedCount === REQUIRED_DOCUMENTS.length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen nca-gradient">
       {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">NCA</span>
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">National College Australia</h1>
-                <p className="text-xs text-gray-600">Document Upload</p>
-              </div>
-            </Link>
-            <div className="text-right">
-              <p className="text-sm text-gray-600">Step 4 of 4</p>
-              <p className="text-xs text-gray-500">Required Documents</p>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header 
+        title="Document Upload" 
+        showProgress={true}
+        currentStep={4}
+        totalSteps={4}
+      />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Progress Indicator */}
+        {/* Progress Steps */}
         <div className="mb-8">
-          <div className="flex items-center justify-between">
-            {steps.map((step, index) => (
-              <div key={step.id} className="flex items-center">
-                <div className="relative">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-200 ${
-                    step.completed 
-                      ? 'bg-green-500 border-green-500 text-white' 
-                      : step.current 
-                        ? 'bg-blue-600 border-blue-600 text-white' 
-                        : 'bg-white border-gray-300 text-gray-500'
-                  }`}>
-                    {step.completed ? (
-                      <span>✓</span>
-                    ) : (
-                      <span className="text-sm font-medium">{step.id}</span>
-                    )}
-                  </div>
-                  <div className="absolute top-12 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
-                    <span className={`text-xs font-medium ${step.current ? 'text-blue-600' : 'text-gray-500'}`}>
-                      {step.name}
-                    </span>
-                  </div>
-                </div>
-                {index < steps.length - 1 && (
-                  <div className={`flex-1 h-0.5 mx-4 transition-all duration-200 ${
-                    step.completed ? 'bg-green-500' : 'bg-gray-300'
-                  }`} />
-                )}
-              </div>
-            ))}
-          </div>
+          <StepProgress steps={steps} />
         </div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="bg-white rounded-xl shadow-lg p-8"
+          className="card"
         >
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">Upload Required Documents</h2>
-            <p className="text-gray-600">
+            <h2 className="text-3xl font-bold text-nca-gray-900 mb-2">Upload Required Documents</h2>
+            <p className="text-nca-gray-600">
               Please upload all required documents to complete your enrollment
             </p>
-            <div className="mt-4 bg-blue-50 rounded-lg p-4">
-              <p className="text-blue-800 font-medium">
+            <div className="mt-4 bg-nca-light rounded-lg p-4">
+              <p className="text-nca-primary font-medium">
                 Progress: {uploadedCount} of {REQUIRED_DOCUMENTS.length} documents uploaded
               </p>
-              <div className="w-full bg-blue-200 rounded-full h-2 mt-2">
+              <div className="nca-progress mt-2">
                 <div 
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  className="nca-progress-fill"
                   style={{ width: `${(uploadedCount / REQUIRED_DOCUMENTS.length) * 100}%` }}
                 />
               </div>
@@ -209,60 +145,72 @@ const DocumentsPage = () => {
 
           <div className="space-y-6 mb-8">
             {REQUIRED_DOCUMENTS.map((document) => (
-              <div key={document.id} className="border border-gray-200 rounded-lg p-6">
+              <div key={document.id} className="border border-nca-gray-200 rounded-lg p-6 bg-white">
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h4 className="text-lg font-semibold text-gray-900">{document.name}</h4>
-                    <p className="text-sm text-gray-600">{document.description}</p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <h4 className="text-lg font-semibold text-nca-gray-900">{document.name}</h4>
+                    <p className="text-sm text-nca-gray-600">{document.description}</p>
+                    <p className="text-xs text-nca-gray-500 mt-1">
                       Accepted formats: PDF, JPG, PNG | Max size: 5MB
                     </p>
                   </div>
                   {uploads[document.id] && (
-                    <div className="text-green-500">✓ Uploaded</div>
+                    <div className="flex items-center text-nca-primary">
+                      <svg className="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      <span className="text-sm font-medium">Uploaded</span>
+                    </div>
                   )}
                 </div>
 
                 {!uploads[document.id] ? (
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                    <div className="flex flex-col items-center">
-                      <div className="w-8 h-8 text-gray-400 mb-3">📄</div>
-                      <p className="text-gray-600 mb-4">Choose file to upload</p>
-                      <input
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        onChange={(e) => handleFileUpload(document.id, e)}
-                        className="block w-full text-sm text-gray-500
-                          file:mr-4 file:py-2 file:px-4
-                          file:rounded-full file:border-0
-                          file:text-sm file:font-semibold
-                          file:bg-blue-50 file:text-blue-700
-                          hover:file:bg-blue-100"
-                      />
-                    </div>
+                  <div className="border-2 border-dashed border-nca-gray-300 rounded-lg p-6 text-center hover:border-nca-primary transition-colors">
+                    <input
+                      type="file"
+                      id={`file-${document.id}`}
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={(e) => handleFileUpload(document.id, e)}
+                      className="hidden"
+                    />
+                    <label
+                      htmlFor={`file-${document.id}`}
+                      className="cursor-pointer"
+                    >
+                      <div className="w-12 h-12 bg-nca-light rounded-full flex items-center justify-center mx-auto mb-3">
+                        <svg className="w-6 h-6 text-nca-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                      </div>
+                      <p className="text-nca-gray-600 mb-1">Click to upload or drag and drop</p>
+                      <p className="text-xs text-nca-gray-500">PDF, PNG, JPG up to 5MB</p>
+                    </label>
                   </div>
                 ) : (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="text-green-600">📄</div>
-                      <div className="flex-1">
-                        <p className="text-green-800 font-medium">{document.name}</p>
-                        <p className="text-green-600 text-sm">Uploaded successfully</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setUploads(prev => {
-                            const newUploads = { ...prev };
-                            delete newUploads[document.id];
-                            return newUploads;
-                          });
-                        }}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        ✕ Remove
-                      </button>
+                  <div className="bg-nca-light border border-nca-primary rounded-lg p-4 flex items-center">
+                    <div className="w-10 h-10 bg-nca-primary rounded-full flex items-center justify-center mr-3">
+                      <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
                     </div>
+                    <div className="flex-1">
+                      <p className="text-nca-primary font-medium">Document uploaded successfully</p>
+                      <p className="text-xs text-nca-gray-600">File verified and ready for processing</p>
+                    </div>
+                    <button
+                      onClick={() => setUploads(prev => ({ ...prev, [document.id]: false }))}
+                      className="text-nca-gray-500 hover:text-nca-gray-700 text-sm"
+                    >
+                      Replace
+                    </button>
                   </div>
                 )}
               </div>
@@ -270,9 +218,9 @@ const DocumentsPage = () => {
           </div>
 
           {/* Important Notes */}
-          <div className="bg-yellow-50 rounded-lg p-6 mb-8">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">Important Notes</h3>
-            <ul className="text-sm text-gray-700 space-y-2">
+          <div className="bg-nca-light border border-nca-primary rounded-lg p-6 mb-8">
+            <h3 className="text-lg font-semibold text-nca-primary mb-3">Important Notes</h3>
+            <ul className="text-sm text-nca-gray-700 space-y-2">
               <li>• All documents must be clear and legible</li>
               <li>• Photos should be in color and well-lit</li>
               <li>• PDF files are preferred for official documents</li>
@@ -286,7 +234,7 @@ const DocumentsPage = () => {
             <button
               type="button"
               onClick={() => router.back()}
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-6 py-3 border border-nca-gray-300 text-nca-gray-700 rounded-lg hover:bg-nca-gray-50 transition-colors"
             >
               Back to Declarations
             </button>
@@ -296,8 +244,8 @@ const DocumentsPage = () => {
               disabled={!allDocumentsUploaded || isSubmitting}
               className={`px-8 py-3 rounded-lg font-semibold transition-all duration-200 ${
                 allDocumentsUploaded && !isSubmitting
-                  ? 'bg-green-600 text-white hover:bg-green-700 shadow-lg'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  ? 'btn-primary hover:scale-105'
+                  : 'bg-nca-gray-300 text-nca-gray-500 cursor-not-allowed'
               }`}
             >
               {isSubmitting ? 'Submitting...' : 'Complete Enrollment'}
@@ -306,8 +254,8 @@ const DocumentsPage = () => {
 
           {isSubmitting && (
             <div className="mt-4 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-              <p className="text-gray-600">Processing your enrollment...</p>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-nca-primary mx-auto mb-2"></div>
+              <p className="text-nca-gray-600">Processing your enrollment...</p>
             </div>
           )}
         </motion.div>

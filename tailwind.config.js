@@ -9,11 +9,25 @@ module.exports = {
     extend: {
       colors: {
         nca: {
-          primary: '#22364a',
-          secondary: '#263c5a',
-          accent: '#3b82f6',
-          light: '#f8fafc',
-          dark: '#1e293b'
+          // Primary teal/green from the logo
+          primary: '#1A7B76',
+          secondary: '#148B7F', 
+          light: '#E6F7F6',
+          dark: '#0F5A56',
+          accent: '#23A89A',
+          // Supporting colors that work well with the teal
+          gray: {
+            50: '#F8FAFA',
+            100: '#F1F5F5',
+            200: '#E4ECEC',
+            300: '#CBD5D5',
+            400: '#9CAFAF',
+            500: '#6B8080',
+            600: '#4A5C5C',
+            700: '#374545',
+            800: '#2A3333',
+            900: '#1E2626'
+          }
         }
       },
       fontFamily: {

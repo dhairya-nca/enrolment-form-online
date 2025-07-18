@@ -509,6 +509,11 @@ export class GoogleSheetsService {
     }
   }
 
+    // Add this to your GoogleSheetsService class
+  async getAllStudents(): Promise<any[]> {
+    return this.getStudentList();
+  }
+  
   private async createDocumentTrackingSheet() {
     const sheet = await this.doc.addSheet({
       title: 'Document_Tracking',

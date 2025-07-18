@@ -33,15 +33,15 @@ const personalDetailsSchema = z.object({
   mainLanguage: z.string().min(1, 'Main language is required'),
   englishProficiency: z.string(),
   // FIXED: Changed to string and transform to boolean
-  australianCitizen: z.string().transform(val => val === 'true'),
+  australianCitizen: z.enum(['true', 'false']).transform(val => val === 'true'),
   aboriginalStatus: z.string(),
   employmentStatus: z.string(),
   // FIXED: Changed to string and transform to boolean
-  secondarySchool: z.string().transform(val => val === 'true'),
+  secondarySchool: z.enum(['true', 'false']).transform(val => val === 'true'),
   schoolLevel: z.string(),
   qualifications: z.string(),
   // FIXED: Changed to string and transform to boolean
-  disability: z.string().transform(val => val === 'true'),
+  disability:z.enum(['true', 'false']).transform(val => val === 'true'),
   courseReason: z.string(),
   usi: z.string().optional()
 });
@@ -64,13 +64,13 @@ const PersonalDetailsPage = () => {
     defaultValues: {
       deliveryMode: 'Blended',
       englishProficiency: 'Very well',
-      australianCitizen: 'true', // FIXED: String instead of boolean
+      australianCitizen: true, // FIXED: Boolean instead of string
       aboriginalStatus: 'No',
       employmentStatus: 'Full-time',
-      secondarySchool: 'false', // FIXED: String instead of boolean
+      secondarySchool: false, // FIXED: String instead of boolean
       schoolLevel: 'Year 12',
       qualifications: 'None',
-      disability: 'false', // FIXED: String instead of boolean
+      disability: false, // FIXED: String instead of boolean
       courseReason: 'To get a job'
     }
   });
@@ -118,13 +118,13 @@ const PersonalDetailsPage = () => {
         setValue('countryOfCitizenship', data.background.countryOfCitizenship || '');
         setValue('mainLanguage', data.background.mainLanguage || '');
         setValue('englishProficiency', data.background.englishProficiency || 'Very well');
-        setValue('australianCitizen', data.background.australianCitizen ? 'true' : 'false');
+        setValue('australianCitizen', data.background.australianCitizen ? true : false);
         setValue('aboriginalStatus', data.background.aboriginalStatus || 'No');
         setValue('employmentStatus', data.background.employmentStatus || 'Full-time');
-        setValue('secondarySchool', data.background.secondarySchool ? 'true' : 'false');
+        setValue('secondarySchool', data.background.secondarySchool ? true : false);
         setValue('schoolLevel', data.background.schoolLevel || 'Year 12');
         setValue('qualifications', data.background.qualifications || 'None');
-        setValue('disability', data.background.disability ? 'true' : 'false');
+        setValue('disability', data.background.disability ? true : false);
         setValue('courseReason', data.background.courseReason || 'To get a job');
       }
       // PRIORITY 4: Restore compliance data

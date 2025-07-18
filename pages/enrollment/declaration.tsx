@@ -49,8 +49,19 @@ const DeclarationPage = () => {
       const data = JSON.parse(savedData);
       setStudentData(data);
       
-      // Pre-fill signature name from personal details
-      if (data.personalDetails) {
+      // PRIORITY 1: Restore previously saved declaration data
+      if (data.compliance) {
+        setFormData(prev => ({
+          ...prev,
+          readPolicy: data.compliance.readPolicy || false,
+          readHandbook: data.compliance.readHandbook || false,
+          agreesToDeclaration: data.compliance.agreesToDeclaration || false,
+          signatureName: data.compliance.declarationSignature || `${data.personalDetails?.firstName || ''} ${data.personalDetails?.lastName || ''}`.trim(),
+          signatureDate: data.compliance.declarationDate || new Date().toISOString().split('T')[0]
+        }));
+      } 
+      // FALLBACK: Pre-fill signature name from personal details
+      else if (data.personalDetails) {
         setFormData(prev => ({
           ...prev,
           signatureName: `${data.personalDetails.firstName} ${data.personalDetails.lastName}`
@@ -60,6 +71,11 @@ const DeclarationPage = () => {
       router.push('/enrollment/start');
     }
   }, [router]);
+
+  const handleBackButton = () => {
+    // Go back to Personal Details page explicitly
+    router.push('/enrollment/personal-details');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -278,13 +294,13 @@ const DeclarationPage = () => {
 
             {/* Navigation */}
             <div className="flex justify-between">
-              <button
-                type="button"
-                onClick={() => router.back()}
-                className="px-6 py-3 border border-nca-gray-300 text-nca-gray-700 rounded-lg hover:bg-nca-gray-50 transition-colors"
-              >
-                Back to Personal Details
-              </button>
+            <button
+              type="button"
+              onClick={handleBackButton} 
+              className="px-6 py-3 border border-nca-gray-300 text-nca-gray-700 rounded-lg hover:bg-nca-gray-50 transition-colors"
+            >
+              Back to Personal Details
+            </button>
               
               <button
                 type="submit"

@@ -31,13 +31,10 @@ const LLNPage = () => {
           eligible: data.eligible
         }
       }));
-
-      // Redirect based on eligibility
-      if (data.eligible) {
-        router.push('/enrollment/personal-details');
-      } else {
-        router.push('/enrollment/not-eligible');
-      }
+  
+      // Redirect to LLN Results page instead of directly to personal-details
+      router.push('/enrollment/lln-results');
+      
     } catch (error) {
       console.error('Error processing LLN completion:', error);
       alert('There was an error processing your assessment. Please try again.');

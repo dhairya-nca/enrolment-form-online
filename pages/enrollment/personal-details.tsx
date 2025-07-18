@@ -64,13 +64,13 @@ const PersonalDetailsPage = () => {
     defaultValues: {
       deliveryMode: 'Blended',
       englishProficiency: 'Very well',
-      australianCitizen: true, // FIXED: String instead of boolean
+      australianCitizen: 'true', // FIXED: String instead of boolean
       aboriginalStatus: 'No',
       employmentStatus: 'Full-time',
-      secondarySchool: false, // FIXED: String instead of boolean
+      secondarySchool: 'false', // FIXED: String instead of boolean
       schoolLevel: 'Year 12',
       qualifications: 'None',
-      disability: false, // FIXED: String instead of boolean
+      disability: 'false', // FIXED: String instead of boolean
       courseReason: 'To get a job'
     }
   });
@@ -88,8 +88,52 @@ const PersonalDetailsPage = () => {
       const data = JSON.parse(savedData);
       setStudentData(data);
       
-      // Pre-fill form with LLN data
-      if (data.personalInfo) {
+      // PRIORITY 1: Restore from previously saved personal details
+      if (data.personalDetails) {
+        setValue('title', data.personalDetails.title || '');
+        setValue('gender', data.personalDetails.gender || '');
+        setValue('firstName', data.personalDetails.firstName || '');
+        setValue('middleName', data.personalDetails.middleName || '');
+        setValue('lastName', data.personalDetails.lastName || '');
+        setValue('dateOfBirth', data.personalDetails.dateOfBirth || '');
+        setValue('mobile', data.personalDetails.mobile || '');
+        setValue('email', data.personalDetails.email || '');
+        setValue('houseNumber', data.personalDetails.address?.houseNumber || '');
+        setValue('streetName', data.personalDetails.address?.streetName || '');
+        setValue('suburb', data.personalDetails.address?.suburb || '');
+        setValue('postcode', data.personalDetails.address?.postcode || '');
+        setValue('state', data.personalDetails.address?.state || '');
+        setValue('postalAddress', data.personalDetails.address?.postalAddress || '');
+      }
+      // PRIORITY 2: Restore course details if they exist
+      if (data.courseDetails) {
+        setValue('courseName', data.courseDetails.courseName || '');
+        setValue('deliveryMode', data.courseDetails.deliveryMode || 'Blended');
+        setValue('startDate', data.courseDetails.startDate || '');
+      }
+      // PRIORITY 3: Restore background info if it exists
+      if (data.background) {
+        setValue('emergencyContact', data.background.emergencyContact || '');
+        setValue('countryOfBirth', data.background.countryOfBirth || '');
+        setValue('countryOfCitizenship', data.background.countryOfCitizenship || '');
+        setValue('mainLanguage', data.background.mainLanguage || '');
+        setValue('englishProficiency', data.background.englishProficiency || 'Very well');
+        setValue('australianCitizen', data.background.australianCitizen ? 'true' : 'false');
+        setValue('aboriginalStatus', data.background.aboriginalStatus || 'No');
+        setValue('employmentStatus', data.background.employmentStatus || 'Full-time');
+        setValue('secondarySchool', data.background.secondarySchool ? 'true' : 'false');
+        setValue('schoolLevel', data.background.schoolLevel || 'Year 12');
+        setValue('qualifications', data.background.qualifications || 'None');
+        setValue('disability', data.background.disability ? 'true' : 'false');
+        setValue('courseReason', data.background.courseReason || 'To get a job');
+      }
+      // PRIORITY 4: Restore compliance data
+      if (data.compliance) {
+        setValue('usi', data.compliance.usi || '');
+      }
+      
+      // FALLBACK: Only if no personal details exist, use LLN data
+      if (!data.personalDetails && data.personalInfo) {
         setValue('firstName', data.personalInfo.firstName);
         setValue('lastName', data.personalInfo.lastName);
         setValue('email', data.personalInfo.email);
@@ -97,10 +141,23 @@ const PersonalDetailsPage = () => {
         setValue('dateOfBirth', data.personalInfo.dateOfBirth);
       }
     } else {
-      // Redirect to start if no LLN data
       router.push('/enrollment/start');
     }
   }, [router, setValue]);
+
+  const handleBackButton = () => {
+    // Go back to LLN Results page instead of using router.back()
+    router.push('/enrollment/lln-results');
+  };
+  
+  // Then update the back button:
+  <button
+    type="button"
+    onClick={handleBackButton}
+    className="px-6 py-3 border border-nca-gray-300 text-nca-gray-700 rounded-lg hover:bg-nca-gray-50 transition-colors"
+  >
+    Back to LLN Results
+  </button>  
 
   const onSubmit = async (data: PersonalDetailsForm) => {
     console.log('🚀 Form submission started');
@@ -661,13 +718,13 @@ const PersonalDetailsPage = () => {
 
             {/* Navigation */}
             <div className="flex justify-between">
-              <button
-                type="button"
-                onClick={() => router.back()}
-                className="px-6 py-3 border border-nca-gray-300 text-nca-gray-700 rounded-lg hover:bg-nca-gray-50 transition-colors"
-              >
-                Back to LLN Results
-              </button>
+            <button
+              type="button"
+              onClick={handleBackButton}  // NEW LINE
+              className="px-6 py-3 border border-nca-gray-300 text-nca-gray-700 rounded-lg hover:bg-nca-gray-50 transition-colors"
+            >
+              Back to LLN Results
+            </button>
               
               <button
                 type="submit"

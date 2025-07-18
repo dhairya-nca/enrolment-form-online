@@ -68,6 +68,12 @@ const DocumentsPage = () => {
     }
   };
 
+  const handleBackButton = () => {
+  // Go back to Declaration page explicitly  
+  router.push('/enrollment/declaration');
+  };
+
+
   const handleFinalSubmit = async () => {
     const uploadedCount = Object.values(uploads).filter(Boolean).length;
     
@@ -242,13 +248,13 @@ const DocumentsPage = () => {
 
           {/* Navigation */}
           <div className="flex justify-between">
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="px-6 py-3 border border-nca-gray-300 text-nca-gray-700 rounded-lg hover:bg-nca-gray-50 transition-colors"
-            >
-              Back to Declarations
-            </button>
+          <button
+            type="button"
+            onClick={handleBackButton}  // NEW LINE
+            className="px-6 py-3 border border-nca-gray-300 text-nca-gray-700 rounded-lg hover:bg-nca-gray-50 transition-colors"
+          >
+            Back to Declarations
+          </button>
             
             <button
               onClick={handleFinalSubmit}

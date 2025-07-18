@@ -309,23 +309,63 @@ const LLNAssessment: React.FC<LLNAssessmentProps> = ({ onComplete }) => {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     
-    const score = calculateScore();
-    const eligible = score >= 60; // 60% threshold for eligibility
-    
-    let rating = 'Excellent';
-    if (score < 40) rating = 'Needs Significant Support';
-    else if (score < 60) rating = 'Needs Some Support';
-    else if (score < 80) rating = 'Good';
-
-    const assessmentData = {
-      responses,
-      overallScore: score,
-      rating,
-      eligible,
-      completedAt: new Date().toISOString()
-    };
-
-    onComplete(assessmentData);
+    try {
+      const score = calculateScore();
+      const eligible = score >= 60;
+      
+      let rating = 'Excellent';
+      if (score < 40) rating = 'Needs Significant Support';
+      else if (score < 60) rating = 'Needs Some Support';
+      else if (score < 80) rating = 'Good';
+  
+      // Get student data from localStorage
+      const registrationData = JSON.parse(localStorage.getItem('nca_student_registration') || '{}');
+      
+      const assessmentData = {
+        studentId: registrationData.studentId,
+        personalInfo: {
+          firstName: registrationData.firstName,
+          lastName: registrationData.lastName,
+          email: registrationData.email,
+          dateOfBirth: registrationData.dateOfBirth,
+          phone: registrationData.phone || ''
+        },
+        responses,
+        scores: {
+          learning: 0, // Calculate per section
+          reading: 0,
+          writing: 0, 
+          numeracy: 0,
+          digitalLiteracy: 0
+        },
+        overallScore: score,
+        rating,
+        eligible,
+        completedAt: new Date().toISOString()
+      };
+  
+      // Submit to API
+      const response = await fetch('/api/submit-lln', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(assessmentData)
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to submit LLN assessment');
+      }
+  
+      const result = await response.json();
+      console.log('LLN submitted successfully:', result);
+  
+      onComplete(assessmentData);
+      
+    } catch (error) {
+      console.error('Error submitting LLN:', error);
+      alert('Failed to submit assessment. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const renderQuestion = (question: Question) => {

@@ -79,8 +79,19 @@ const DocumentsPage = () => {
     setIsSubmitting(true);
 
     try {
-      // Simulate final submission
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Submit enrollment to API
+      const response = await fetch('/api/submit-enrollment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(studentData)
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to submit enrollment');
+      }
+  
+      const result = await response.json();
+      console.log('Enrollment submitted successfully:', result);
       
       const completedData = {
         ...studentData,
@@ -88,10 +99,10 @@ const DocumentsPage = () => {
         status: 'enrollment-complete',
         completedAt: new Date().toISOString()
       };
-
+  
       localStorage.setItem('nca_student_data', JSON.stringify(completedData));
       router.push('/enrollment/complete');
-
+  
     } catch (error) {
       console.error('Error completing enrollment:', error);
       alert('There was an error completing your enrollment. Please try again.');

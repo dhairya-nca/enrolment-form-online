@@ -1,8 +1,9 @@
+// utils/constants.ts
 export const COURSES = [
-  'CHC33021 Certificate III in Individual Support',
-  'CHC43015 Certificate IV in Ageing Support', 
-  'CHC43121 Certificate IV in Disability',
-  'HLT33115 Certificate III in Health Services Assistance'
+  'CHC33021 Cert III Individual Support (Ageing)',
+  'CHC33021 Cert III Individual Support (Disability)', 
+  'CHC33021 Cert III Individual Support (Ageing & Disability)',
+  'CHC43121 Certificate IV in Disability'
 ] as const;
 
 export const STATES = [
@@ -126,110 +127,16 @@ export const LLN_QUESTIONS = [
   {
     section: 'Numeracy',
     id: 'q15',
-    question: 'Circle the larger number: 42 or 24',
-    type: 'number' as const,
-    answer: '42',
+    question: 'If you need to give medication every 4 hours and start at 8:00 AM, what times will you give it during the day (until 8:00 PM)?',
+    type: 'text' as const,
     required: true
   },
   {
     section: 'Numeracy',
     id: 'q16',
-    question: 'What is half of 20?',
+    question: 'A client drinks 250ml of water 6 times a day. How much water do they drink in total?',
     type: 'number' as const,
-    answer: '10',
+    answer: '1500',
     required: true
-  },
-  
-  // Digital Literacy (6 questions)
-  {
-    section: 'Digital Literacy',
-    id: 'q17',
-    question: 'What is the purpose of a password?',
-    type: 'text' as const,
-    required: true
-  },
-  {
-    section: 'Digital Literacy',
-    id: 'q18',
-    question: 'Which one is a web browser?',
-    type: 'radio' as const,
-    options: ['Microsoft Word', 'Google Chrome', 'Excel', 'Zoom'],
-    answer: 'Google Chrome',
-    required: true
-  },
-  {
-    section: 'Digital Literacy',
-    id: 'q19',
-    question: 'True or False: You can attach a file to an email.',
-    type: 'radio' as const,
-    options: ['True', 'False'],
-    answer: 'True',
-    required: true
-  },
-  {
-    section: 'Digital Literacy',
-    id: 'q20',
-    question: 'You need to join an online class. What should you do?',
-    type: 'text' as const,
-    required: true
-  },
-  {
-    section: 'Digital Literacy',
-    id: 'q21',
-    question: 'List one thing you can do on a computer.',
-    type: 'text' as const,
-    required: true
-  },
-  {
-    section: 'Digital Literacy',
-    id: 'q22',
-    question: 'Which of these is the safest way to create a password?',
-    type: 'radio' as const,
-    options: [
-      'A. Use your pet\'s name and birthday',
-      'B. Use \'password123\'',
-      'C. Use a mix of letters, numbers, and symbols',
-      'D. Use only your date of birth'
-    ],
-    answer: 'C. Use a mix of letters, numbers, and symbols',
-    required: true
-  }
-];
-
-export const REQUIRED_DOCUMENTS = [
-  {
-    id: 'passportBio',
-    name: 'Passport Bio Page',
-    description: 'Clear photo of your passport information page',
-    accept: '.pdf,.jpg,.jpeg,.png',
-    maxSize: 5 * 1024 * 1024 // 5MB
-  },
-  {
-    id: 'visaCopy',
-    name: 'Current VISA Copy',
-    description: 'Copy of your current Australian visa',
-    accept: '.pdf,.jpg,.jpeg,.png',
-    maxSize: 5 * 1024 * 1024
-  },
-  {
-    id: 'photoId',
-    name: 'Photo ID',
-    description: 'Driver\'s license or other government-issued photo ID',
-    accept: '.pdf,.jpg,.jpeg,.png',
-    maxSize: 5 * 1024 * 1024
-  },
-  {
-    id: 'usiEmail',
-    name: 'USI Creation Email',
-    description: 'Email confirmation from creating your USI',
-    accept: '.pdf,.jpg,.jpeg,.png',
-    maxSize: 5 * 1024 * 1024
-  },
-  {
-    id: 'recentPhoto',
-    name: 'Recent Photo',
-    description: 'Recent passport-style photograph',
-    accept: '.jpg,.jpeg,.png',
-    maxSize: 2 * 1024 * 1024 // 2MB for photos
   }
 ] as const;

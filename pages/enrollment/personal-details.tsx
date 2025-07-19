@@ -88,30 +88,41 @@ const PersonalDetailsPage = () => {
       const data = JSON.parse(savedData);
       setStudentData(data);
       
-      // PRIORITY 1: Restore from previously saved personal details
+      // PRIORITY 1: Always use registration data for email and DOB (from personalInfo)
+      if (data.personalInfo) {
+        setValue('email', data.personalInfo.email);
+        setValue('dateOfBirth', data.personalInfo.dateOfBirth);
+        setValue('firstName', data.personalInfo.firstName);
+        setValue('lastName', data.personalInfo.lastName);
+        setValue('mobile', data.personalInfo.phone);
+      }
+      
+      // PRIORITY 2: Restore from previously saved personal details
       if (data.personalDetails) {
         setValue('title', data.personalDetails.title || '');
         setValue('gender', data.personalDetails.gender || '');
         setValue('firstName', data.personalDetails.firstName || '');
         setValue('middleName', data.personalDetails.middleName || '');
         setValue('lastName', data.personalDetails.lastName || '');
-        setValue('dateOfBirth', data.personalDetails.dateOfBirth || '');
         setValue('mobile', data.personalDetails.mobile || '');
-        setValue('email', data.personalDetails.email || '');
         setValue('houseNumber', data.personalDetails.address?.houseNumber || '');
         setValue('streetName', data.personalDetails.address?.streetName || '');
         setValue('suburb', data.personalDetails.address?.suburb || '');
         setValue('postcode', data.personalDetails.address?.postcode || '');
         setValue('state', data.personalDetails.address?.state || '');
         setValue('postalAddress', data.personalDetails.address?.postalAddress || '');
+        
+        // Don't override email and DOB from personalDetails - always use registration data
       }
-      // PRIORITY 2: Restore course details if they exist
+      
+      // PRIORITY 3: Restore course details if they exist
       if (data.courseDetails) {
         setValue('courseName', data.courseDetails.courseName || '');
         setValue('deliveryMode', data.courseDetails.deliveryMode || 'Blended');
         setValue('startDate', data.courseDetails.startDate || '');
       }
-      // PRIORITY 3: Restore background info if it exists
+      
+      // PRIORITY 4: Restore background info if it exists
       if (data.background) {
         setValue('emergencyContact', data.background.emergencyContact || '');
         setValue('countryOfBirth', data.background.countryOfBirth || '');
@@ -127,18 +138,10 @@ const PersonalDetailsPage = () => {
         setValue('disability', data.background.disability ? true : false);
         setValue('courseReason', data.background.courseReason || 'To get a job');
       }
-      // PRIORITY 4: Restore compliance data
+      
+      // PRIORITY 5: Restore compliance data
       if (data.compliance) {
         setValue('usi', data.compliance.usi || '');
-      }
-      
-      // FALLBACK: Only if no personal details exist, use LLN data
-      if (!data.personalDetails && data.personalInfo) {
-        setValue('firstName', data.personalInfo.firstName);
-        setValue('lastName', data.personalInfo.lastName);
-        setValue('email', data.personalInfo.email);
-        setValue('mobile', data.personalInfo.phone);
-        setValue('dateOfBirth', data.personalInfo.dateOfBirth);
       }
     } else {
       router.push('/enrollment/start');
@@ -149,15 +152,6 @@ const PersonalDetailsPage = () => {
     // Go back to LLN Results page instead of using router.back()
     router.push('/enrollment/lln-results');
   };
-  
-  // Then update the back button:
-  <button
-    type="button"
-    onClick={handleBackButton}
-    className="px-6 py-3 border border-nca-gray-300 text-nca-gray-700 rounded-lg hover:bg-nca-gray-50 transition-colors"
-  >
-    Back to LLN Results
-  </button>  
 
   const onSubmit = async (data: PersonalDetailsForm) => {
     console.log('🚀 Form submission started');
@@ -341,7 +335,9 @@ const PersonalDetailsPage = () => {
                   <input
                     type="date"
                     {...register('dateOfBirth')}
-                    className="form-field"
+                    className="form-field bg-gray-100 cursor-not-allowed"
+                    disabled
+                    readOnly
                   />
                   {errors.dateOfBirth && <p className="text-red-500 text-sm mt-1">{errors.dateOfBirth.message}</p>}
                 </div>
@@ -362,8 +358,10 @@ const PersonalDetailsPage = () => {
                   <input
                     type="email"
                     {...register('email')}
-                    className="form-field"
+                    className="form-field bg-gray-100 cursor-not-allowed"
                     placeholder="Enter email address"
+                    disabled
+                    readOnly
                   />
                   {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
                 </div>
@@ -718,13 +716,13 @@ const PersonalDetailsPage = () => {
 
             {/* Navigation */}
             <div className="flex justify-between">
-            <button
-              type="button"
-              onClick={handleBackButton}  // NEW LINE
-              className="px-6 py-3 border border-nca-gray-300 text-nca-gray-700 rounded-lg hover:bg-nca-gray-50 transition-colors"
-            >
-              Back to LLN Results
-            </button>
+              <button
+                type="button"
+                onClick={handleBackButton}
+                className="px-6 py-3 border border-nca-gray-300 text-nca-gray-700 rounded-lg hover:bg-nca-gray-50 transition-colors"
+              >
+                Back to LLN Results
+              </button>
               
               <button
                 type="submit"

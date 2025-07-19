@@ -1,24 +1,37 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import Header from '../../components/Header';
 
 const TestLLNPage = () => {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const generateRandomTestData = (scenario: 'eligible' | 'not-eligible') => {
+    // Generate unique test data for each test session
+    const timestamp = Date.now();
+    const randomId = Math.floor(Math.random() * 10000);
+    
+    return {
+      studentId: `TEST-${timestamp}-${randomId}`,
+      personalInfo: {
+        firstName: scenario === 'eligible' ? 'Alex' : 'Sam',
+        lastName: `TestUser${randomId}`,
+        email: `test${randomId}@example.com`,
+        dateOfBirth: '1995-03-15',
+        phone: `041234${randomId.toString().slice(-4)}`
+      }
+    };
+  };
+
   const handleQuickTest = async (scenario: 'eligible' | 'not-eligible') => {
     setIsSubmitting(true);
     
+    const testData = generateRandomTestData(scenario);
+    
     const mockStudentData = {
-      studentId: `TEST-${Date.now()}`,
-      personalInfo: {
-        firstName: 'Test',
-        lastName: 'Student',
-        email: 'test@example.com',
-        phone: '0412345678',
-        dateOfBirth: '1990-01-01'
-      },
+      ...testData,
       scores: {
         learning: scenario === 'eligible' ? 80 : 30,
         reading: scenario === 'eligible' ? 75 : 25,
@@ -32,10 +45,22 @@ const TestLLNPage = () => {
       completedAt: new Date().toISOString()
     };
 
-    // Store test data
+    // Store test registration data (simulating what happens in actual registration)
+    localStorage.setItem('nca_student_registration', JSON.stringify({
+      studentId: testData.studentId,
+      firstName: testData.personalInfo.firstName,
+      lastName: testData.personalInfo.lastName,
+      email: testData.personalInfo.email,
+      dateOfBirth: testData.personalInfo.dateOfBirth,
+      phone: testData.personalInfo.phone,
+      folderId: `folder-${testData.studentId}`,
+      attemptCount: 1
+    }));
+
+    // Store test student data
     localStorage.setItem('nca_student_data', JSON.stringify({
-      studentId: mockStudentData.studentId,
-      personalInfo: mockStudentData.personalInfo,
+      studentId: testData.studentId,
+      personalInfo: testData.personalInfo,
       llnResults: {
         scores: mockStudentData.scores,
         overallScore: mockStudentData.overallScore,
@@ -65,7 +90,7 @@ const TestLLNPage = () => {
         <div className="card text-center">
           <h2 className="text-2xl font-bold text-nca-gray-900 mb-4">🧪 Quick Testing Mode</h2>
           <p className="text-nca-gray-600 mb-8">
-            Skip the full LLN assessment and jump straight to testing different scenarios
+            Skip the full LLN assessment and jump straight to testing different scenarios with unique test data
           </p>
 
           <div className="space-y-4">
@@ -76,6 +101,7 @@ const TestLLNPage = () => {
             >
               Test Eligible Student Flow
               <div className="text-sm opacity-90">Score: 83% (Excellent) → Personal Details</div>
+              <div className="text-xs opacity-75">✨ Generates unique test data each time</div>
             </button>
 
             <button
@@ -85,6 +111,7 @@ const TestLLNPage = () => {
             >
               Test Not Eligible Student Flow
               <div className="text-sm opacity-90">Score: 28% (Requires Support) → Not Eligible Page</div>
+              <div className="text-xs opacity-75">✨ Generates unique test data each time</div>
             </button>
 
             <Link 

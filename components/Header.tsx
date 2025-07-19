@@ -27,7 +27,7 @@ const Header: React.FC<HeaderProps> = ({
             <div className="ml-4 hidden sm:block">
               <h1 className="text-xl font-bold text-nca-primary">National College Australia</h1>
               <p className="text-xs text-nca-gray-600">
-                {subtitle || 'RTO Provider No. #91000'}
+                {subtitle || 'RTO ID 91000'}
               </p>
             </div>
           </Link>

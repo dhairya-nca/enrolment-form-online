@@ -16,20 +16,10 @@ const EnrollmentStart = () => {
       description: 'Have your personal details, address, and contact information ready'
     },
     {
-      icon: CheckCircleIcon,
-      title: 'Course Selection',
-      description: 'Know which course you want to enroll in and your preferred start date'
-    },
-    {
       icon: UploadIcon,
       title: 'Required Documents',
       description: 'Digital copies of passport, visa, photo ID, USI email, and recent photo'
     },
-    {
-      icon: ClockIcon,
-      title: 'Time Commitment',
-      description: 'Allow 30-45 minutes to complete the entire enrollment process'
-    }
   ];
 
   const handleStartAssessment = () => {
@@ -51,7 +41,7 @@ const EnrollmentStart = () => {
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-nca-gray-900 mb-4">Welcome to NCA Enrollment</h2>
             <p className="text-nca-gray-600 text-lg">
-              You're about to begin your journey toward a rewarding career in healthcare and community services.
+              Please read the instructions carefully before starting your enrollment process.
             </p>
           </div>
 
@@ -88,19 +78,19 @@ const EnrollmentStart = () => {
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
                 <div className="w-6 h-6 bg-nca-primary text-white rounded-full flex items-center justify-center text-sm font-medium">1</div>
-                <span className="text-nca-gray-700">Complete LLN Assessment (15 minutes)</span>
+                <span className="text-nca-gray-700">Complete Language, Literacy and Numeracy (LLN) assessment</span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-6 h-6 bg-nca-primary text-white rounded-full flex items-center justify-center text-sm font-medium">2</div>
-                <span className="text-nca-gray-700">Fill Personal Details & Course Selection (10 minutes)</span>
+                <span className="text-nca-gray-700">Fill Personal Details & Course Selection</span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-6 h-6 bg-nca-primary text-white rounded-full flex items-center justify-center text-sm font-medium">3</div>
-                <span className="text-nca-gray-700">Read & Accept Declarations (5 minutes)</span>
+                <span className="text-nca-gray-700">Read & Accept Declarations</span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-6 h-6 bg-nca-primary text-white rounded-full flex items-center justify-center text-sm font-medium">4</div>
-                <span className="text-nca-gray-700">Upload Required Documents (10 minutes)</span>
+                <span className="text-nca-gray-700">Upload Required Documents</span>
               </div>
             </div>
           </div>
@@ -123,7 +113,7 @@ const EnrollmentStart = () => {
               </li>
               <li className="flex items-start space-x-2">
                 <span className="text-nca-primary font-bold">•</span>
-                <span>If you need assistance, contact our support team at support@nca.edu.au</span>
+                <span>If you need assistance, contact our support team at admin@nca.edu.au</span>
               </li>
             </ul>
           </div>

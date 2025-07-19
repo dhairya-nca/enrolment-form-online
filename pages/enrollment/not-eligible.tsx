@@ -34,26 +34,7 @@ const NotEligiblePage = () => {
             <ul className="text-left text-nca-gray-700 space-y-2">
               <li>• Your assessment indicates you may need additional literacy or numeracy support</li>
               <li>• This doesn't mean you can't study with us - we're here to help you succeed</li>
-              <li>• We offer foundation programs to build your skills before starting your main course</li>
-              <li>• Our student support team will work with you to create a personalized learning plan</li>
             </ul>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div className="bg-nca-light rounded-lg p-6">
-              <h4 className="font-semibold text-nca-primary mb-3">Foundation Programs</h4>
-              <p className="text-nca-gray-600 text-sm">
-                We offer preparatory courses in reading, writing, and basic mathematics 
-                to help you build confidence and skills.
-              </p>
-            </div>
-            <div className="bg-green-50 rounded-lg p-6">
-              <h4 className="font-semibold text-nca-primary mb-3">Individual Support</h4>
-              <p className="text-nca-gray-600 text-sm">
-                Our experienced support staff provide one-on-one assistance 
-                throughout your learning journey.
-              </p>
-            </div>
           </div>
 
           <div className="bg-nca-gray-50 rounded-lg p-6 mb-8">
@@ -67,7 +48,7 @@ const NotEligiblePage = () => {
                 <span>Call Us: +61 2 3456 7890</span>
               </a>
               <a 
-                href="mailto:support@nca.edu.au"
+                href="mailto:admin@nca.edu.au"
                 className="btn-secondary flex items-center justify-center space-x-2"
               >
                 <MailIcon className="w-4 h-4" />

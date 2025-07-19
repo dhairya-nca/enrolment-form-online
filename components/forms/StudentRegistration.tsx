@@ -186,10 +186,10 @@ const StudentRegistration: React.FC<StudentRegistrationProps> = ({ onRegistratio
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white rounded-xl shadow-lg p-8">
+    <div className="max-w-md mx-auto card">
       <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Student Registration</h2>
-        <p className="text-gray-600 mt-2">Enter your details to begin the LLN assessment</p>
+        <h2 className="text-2xl font-bold text-nca-gray-900">Student Registration</h2>
+        <p className="text-nca-gray-600 mt-2">Enter your details to begin the LLN assessment</p>
       </div>
 
       {message && (
@@ -225,7 +225,7 @@ const StudentRegistration: React.FC<StudentRegistrationProps> = ({ onRegistratio
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="firstName" className="block text-sm font-medium text-nca-gray-700 mb-1">
             First Name *
           </label>
           <input
@@ -235,8 +235,8 @@ const StudentRegistration: React.FC<StudentRegistrationProps> = ({ onRegistratio
             value={formData.firstName}
             onChange={handleInputChange}
             disabled={isSubmitting}
-            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 ${
-              errors.firstName ? 'border-red-500' : 'border-gray-300'
+            className={`form-field disabled:bg-nca-gray-100 ${
+              errors.firstName ? 'border-red-500' : ''
             }`}
             placeholder="Enter your first name"
           />
@@ -246,7 +246,7 @@ const StudentRegistration: React.FC<StudentRegistrationProps> = ({ onRegistratio
         </div>
 
         <div>
-          <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="lastName" className="block text-sm font-medium text-nca-gray-700 mb-1">
             Last Name *
           </label>
           <input
@@ -256,8 +256,8 @@ const StudentRegistration: React.FC<StudentRegistrationProps> = ({ onRegistratio
             value={formData.lastName}
             onChange={handleInputChange}
             disabled={isSubmitting}
-            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 ${
-              errors.lastName ? 'border-red-500' : 'border-gray-300'
+            className={`form-field disabled:bg-nca-gray-100 ${
+              errors.lastName ? 'border-red-500' : ''
             }`}
             placeholder="Enter your last name"
           />
@@ -267,7 +267,7 @@ const StudentRegistration: React.FC<StudentRegistrationProps> = ({ onRegistratio
         </div>
 
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="email" className="block text-sm font-medium text-nca-gray-700 mb-1">
             Email Address *
           </label>
           <input
@@ -277,8 +277,8 @@ const StudentRegistration: React.FC<StudentRegistrationProps> = ({ onRegistratio
             value={formData.email}
             onChange={handleInputChange}
             disabled={isSubmitting}
-            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 ${
-              errors.email ? 'border-red-500' : 'border-gray-300'
+            className={`form-field disabled:bg-nca-gray-100 ${
+              errors.email ? 'border-red-500' : ''
             }`}
             placeholder="Enter your email address"
           />
@@ -288,7 +288,7 @@ const StudentRegistration: React.FC<StudentRegistrationProps> = ({ onRegistratio
         </div>
 
         <div>
-          <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="dateOfBirth" className="block text-sm font-medium text-nca-gray-700 mb-1">
             Date of Birth *
           </label>
           <input
@@ -299,8 +299,8 @@ const StudentRegistration: React.FC<StudentRegistrationProps> = ({ onRegistratio
             onChange={handleInputChange}
             disabled={isSubmitting}
             max={new Date().toISOString().split('T')[0]} // Prevent future dates
-            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 ${
-              errors.dateOfBirth ? 'border-red-500' : 'border-gray-300'
+            className={`form-field disabled:bg-nca-gray-100 ${
+              errors.dateOfBirth ? 'border-red-500' : ''
             }`}
           />
           {errors.dateOfBirth && (
@@ -311,7 +311,7 @@ const StudentRegistration: React.FC<StudentRegistrationProps> = ({ onRegistratio
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? (
             <div className="flex items-center justify-center">
@@ -325,7 +325,7 @@ const StudentRegistration: React.FC<StudentRegistrationProps> = ({ onRegistratio
       </form>
 
       <div className="mt-6 text-center">
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-nca-gray-500">
           * Required fields. Your information is secure and will only be used for enrollment purposes.
         </p>
       </div>

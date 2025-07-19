@@ -163,7 +163,7 @@ const RegisterPage = () => {
                   href="mailto:admissions@nca.edu.au" 
                   className="text-nca-primary hover:text-nca-secondary font-medium"
                 >
-                  admissions@nca.edu.au
+                  admin@nca.edu.au
                 </a>
                 <span className="hidden sm:block text-nca-gray-400">•</span>
                 <a 

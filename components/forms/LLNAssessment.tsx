@@ -465,7 +465,7 @@ const LLNAssessment: React.FC<LLNAssessmentProps> = ({ onComplete }) => {
       <div className="bg-white rounded-lg shadow-sm border border-nca-gray-200 p-4 mb-6">
         <div className="flex justify-between items-center mb-2">
           <span className="text-sm font-medium text-nca-gray-700">Section {currentSection + 1} of {totalSections}: {currentSectionName}</span>
-          <span className="text-sm text-nca-gray-500">{Math.round(((currentSection + 1) / totalSections) * 100)}% Complete</span>
+          <span className="text-sm text-nca-gray-500">{Math.round(((currentSection + 1) / totalSections) * 100)}%</span>
         </div>
         <div className="w-full bg-nca-gray-200 rounded-full h-2">
           <div 

@@ -1,4 +1,4 @@
-// pages/api/upload-documents.ts
+// pages/api/upload-documents.ts - Enhanced with better folder management
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { IncomingForm } from 'formidable';
 import { GoogleSheetsService } from '../../lib/googleSheets';
@@ -61,12 +61,34 @@ export default async function handler(
     const sheetsService = new GoogleSheetsService();
     const driveService = new GoogleDriveService();
 
-    // Find student folder
-    const studentList = await sheetsService.getStudentList();
-    const student = studentList.find(s => s.studentId === studentId);
-
-    if (!student || !student.folderId) {
-      return res.status(404).json({ error: 'Student folder not found' });
+    // Get or create student folder
+    let studentFolderId: string;
+    try {
+      // Try to find existing student
+      const studentList = await sheetsService.getStudentList();
+      const existingStudent = studentList.find(s => s.studentId === studentId);
+      
+      if (existingStudent && existingStudent.folderId) {
+        studentFolderId = existingStudent.folderId;
+        console.log(`Using existing student folder: ${studentFolderId}`);
+      } else {
+        // Create new folder for student
+        console.log(`Creating new folder for student: ${studentId}`);
+        const studentName = existingStudent ? 
+          `${existingStudent.firstName}_${existingStudent.lastName}` : 
+          `Student_${studentId}`;
+        
+        studentFolderId = await driveService.ensureStudentFolder(studentId, studentName);
+        
+        // Update student record with folder ID
+        await sheetsService.updateStudentFolder(studentId, studentFolderId);
+        console.log(`Student folder created and updated: ${studentFolderId}`);
+      }
+    } catch (folderError) {
+      console.error('Error managing student folder:', folderError);
+      return res.status(500).json({ 
+        error: 'Failed to access student folder. Please contact support.' 
+      });
     }
 
     // Read file buffer
@@ -74,27 +96,24 @@ export default async function handler(
     
     // Generate filename with timestamp
     const timestamp = new Date().toISOString().split('T')[0];
-    const fileExtension = file.originalFilename?.split('.').pop() || 'pdf';
+    const fileExtension = file.originalFilename?.split('.').pop() || 
+      (file.mimetype === 'application/pdf' ? 'pdf' : 'jpg');
     const fileName = `${documentType}_${studentId}_${timestamp}.${fileExtension}`;
 
     let fileUrl: string;
-    let allDocumentsUploaded = false;
-    let uploadedCount = 0;
-    const requiredDocs = ['passportBio', 'visaCopy', 'photoId', 'usiEmail', 'recentPhoto'];
-    const totalRequired = requiredDocs.length;
 
     try {
-      // Upload to Google Drive with automatic subfolder organization
-      if (file.mimetype === 'application/pdf') {
-        fileUrl = await driveService.uploadPDFFromBuffer(student.folderId, fileName, fileBuffer, 'Documents');
-      } else {
-        // Handle images - upload to Documents subfolder
-        const imageType = file.mimetype.split('/')[1];
-        const base64Data = fileBuffer.toString('base64');
-        fileUrl = await driveService.uploadImageFromBase64(student.folderId, fileName, base64Data, imageType, 'Documents');
-      }
+      // Upload to Google Drive in Documents subfolder
+      console.log(`Uploading file to Drive: ${fileName}`);
+      fileUrl = await driveService.uploadFile(
+        studentFolderId, 
+        fileName, 
+        fileBuffer, 
+        file.mimetype || 'application/octet-stream',
+        'Documents' // Always save in Documents subfolder
+      );
 
-      console.log('Document uploaded to Drive:', fileUrl);
+      console.log('Document uploaded to Drive successfully:', fileUrl);
 
       // Update document tracking in Google Sheets
       await sheetsService.updateDocumentStatus(studentId, {
@@ -103,25 +122,23 @@ export default async function handler(
 
       console.log('Document status updated in sheets');
 
-      // Simplified document completion check
-      // Since we just updated the document status, we can check if all 5 required docs are now uploaded
-      // by doing a simple count - this is less precise but avoids the TypeScript error
-      try {
-        console.log(`Document ${documentType} uploaded successfully for student ${studentId}`);
-        
-        // Simple completion logic - you can enhance this later by adding the getDocumentStatus method
-        // For now, we'll just indicate successful upload
-        allDocumentsUploaded = false; // Set to false for safety - manual verification required
-        uploadedCount = 1; // At least this document is uploaded
-        
-      } catch (checkError) {
-        console.warn('Failed to check document completion status:', checkError);
-        // Continue with successful upload response even if status check fails
-      }
+      // Check completion status
+      const documentStatus = await sheetsService.getDocumentStatus(studentId);
+      const requiredDocs = ['passportBio', 'visaCopy', 'photoId', 'usiEmail', 'recentPhoto'];
+      const uploadedDocs = documentStatus ? 
+        requiredDocs.filter(doc => documentStatus[doc] && documentStatus[doc].trim() !== '') : 
+        [];
+      
+      const uploadedCount = uploadedDocs.length;
+      const allDocumentsUploaded = uploadedCount === requiredDocs.length;
+
+      console.log(`Document completion check: ${uploadedCount}/${requiredDocs.length} documents uploaded`);
 
     } catch (uploadError) {
       console.error('Error uploading to Drive:', uploadError);
-      throw new Error('Failed to upload document to Google Drive');
+      return res.status(500).json({ 
+        error: 'Failed to upload document to Google Drive. Please try again.' 
+      });
     }
 
     // Clean up temp file
@@ -131,26 +148,28 @@ export default async function handler(
       console.warn('Failed to cleanup temp file:', cleanupError);
     }
 
+    // Return success response
     res.status(200).json({ 
       success: true,
       fileUrl,
       fileName,
       documentType,
       fileSize: file.size,
-      message: 'Document uploaded successfully and saved to Google Drive',
-      allDocumentsUploaded,
+      studentFolderId,
+      message: 'Document uploaded successfully and saved to your student folder!',
       uploadedCount,
-      totalRequired,
+      totalRequired: requiredDocs.length,
+      allDocumentsUploaded,
       note: allDocumentsUploaded 
         ? 'All required documents have been uploaded! Your enrollment is ready for review.' 
-        : `Document uploaded to your student folder. ${totalRequired - uploadedCount} more document(s) required.`
+        : `Document saved to your student folder. ${requiredDocs.length - uploadedCount} more document(s) required.`
     });
 
   } catch (error) {
-    console.error('Error uploading document:', error);
+    console.error('Error in document upload handler:', error);
     res.status(500).json({ 
       error: 'Internal server error',
-      message: 'Failed to upload document. Please try again.'
+      message: 'Failed to upload document. Please try again or contact support if the problem persists.'
     });
   }
 }

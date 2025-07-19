@@ -1,17 +1,29 @@
-// utils/types.ts
-export interface Student {
-  id: string;
+// utils/types.ts - TypeScript type definitions for the project
+
+export interface StudentInfo {
+  studentId: string;
   firstName: string;
   lastName: string;
   email: string;
-  phone: string;
   dateOfBirth: string;
-  createdAt: string;
+  folderId?: string;
+  attemptCount: number;
+  isBlocked?: boolean;
+  registeredAt?: string;
+  lastAttemptAt?: string;
+  status?: string;
 }
 
 export interface LLNResponse {
   studentId: string;
-  responses: Record<string, string | string[]>;
+  responses: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+    dateOfBirth: string;
+    [key: string]: any;
+  };
   scores: {
     learning: number;
     reading: number;
@@ -20,7 +32,7 @@ export interface LLNResponse {
     digitalLiteracy: number;
   };
   overallScore: number;
-  rating: 'Excellent' | 'Good' | 'Satisfactory' | 'Needs Support' | 'Requires Intensive Support';
+  rating: string;
   eligible: boolean;
   completedAt: string;
 }
@@ -28,67 +40,67 @@ export interface LLNResponse {
 export interface EnrollmentData {
   studentId: string;
   personalDetails: {
-    title: string;
-    gender: string;
     firstName: string;
+    lastName?: string;
+    surname?: string;
     middleName?: string;
-    lastName: string;
+    email?: string;
+    emailAddress?: string;
+    mobile?: string;
+    mobilePhone?: string;
     dateOfBirth: string;
-    mobile: string;
-    email: string;
-    address: {
-      houseNumber: string;
-      streetName: string;
-      suburb: string;
-      postcode: string;
-      state: string;
-      postalAddress?: string;
+    usi?: string;
+    address?: {
+      streetAddress?: string;
+      houseNumber?: string;
+      streetName?: string;
+      suburb?: string;
+      state?: string;
+      postcode?: string;
     };
   };
-  courseDetails: {
-    courseName: string;
-    deliveryMode: string;
-    startDate: string;
+  qualificationDetails?: {
+    preferredQualification?: string;
   };
-  background: {
-    emergencyContact: string;
-    countryOfBirth: string;
-    countryOfCitizenship: string;
-    mainLanguage: string;
-    englishProficiency: string;
-    australianCitizen: boolean;
-    aboriginalStatus: string;
-    employmentStatus: string;
-    secondarySchool: boolean;
-    schoolLevel: string;
-    qualifications: string;
-    disability: boolean;
-    courseReason: string;
+  courseDetails?: {
+    courseName?: string;
   };
-  compliance: {
-    usi?: string;
-    privacySignature: string;
-    privacyDate: string;
-    declarationSignature: string;
-    declarationDate: string;
-    policySignature: string;
-    policyDate: string;
+  background?: {
+    countryOfBirth?: string;
+    emergencyContact?: string;
   };
-  documents: {
-    passportBio?: string;
-    visaCopy?: string;
-    photoId?: string;
-    usiEmail?: string;
-    recentPhoto?: string;
-  };
-  status: 'draft' | 'lln-complete' | 'enrollment-complete' | 'documents-pending' | 'complete';
 }
 
-export interface DocumentUpload {
-  id: string;
-  name: string;
-  type: string;
-  size: number;
-  url: string;
-  uploadedAt: string;
+export interface DocumentStatus {
+  passportBio: string;
+  visaCopy: string;
+  photoId: string;
+  usiEmail: string;
+  recentPhoto: string;
+  allComplete?: boolean;
+  completedCount?: number;
+  lastUploadDate?: string;
+  verificationStatus?: string;
+}
+
+export interface AnalyticsData {
+  totalStudents: number;
+  totalEnrollments: number;
+  totalLLNAssessments: number;
+  todaySubmissions: number;
+  weeklySubmissions: number;
+  eligibilityRate: number;
+  studentsAtMaxAttempts: number;
+  popularCourses: Array<{course: string, count: number}>;
+}
+
+export interface StudentRegistration {
+  studentId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  dateOfBirth: string;
+  folderId: string;
+  attemptCount: number;
+  registeredAt: string;
 }

@@ -98,10 +98,10 @@ export default async function handler(
     } else {
       // New student - create folder and register
       const studentId = `STU-${Date.now()}`;
-      const folderName = `${firstName}_${lastName}_${new Date().toISOString().split('T')[0]}`;
+      const studentName = `${firstName}_${lastName}`;
       
-      // Create Google Drive folder
-      const folderId = await driveService.createStudentFolder(folderName);
+      // Create Google Drive folder using ensureStudentFolder instead of createStudentFolder
+      const folderId = await driveService.ensureStudentFolder(studentId, studentName);
       
       // Register student in tracking system
       await sheetsService.registerNewStudent({

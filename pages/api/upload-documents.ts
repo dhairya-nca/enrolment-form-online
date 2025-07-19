@@ -74,7 +74,7 @@ export default async function handler(
       } else {
         // Create new folder for student
         console.log(`Creating new folder for student: ${studentId}`);
-        const studentName = existingStudent ? 
+        const studentName = existingStudent ?
           `${existingStudent.firstName}_${existingStudent.lastName}` : 
           `Student_${studentId}`;
         
@@ -100,7 +100,11 @@ export default async function handler(
       (file.mimetype === 'application/pdf' ? 'pdf' : 'jpg');
     const fileName = `${documentType}_${studentId}_${timestamp}.${fileExtension}`;
 
+    // Declare variables in the correct scope
     let fileUrl: string;
+    let uploadedCount: number = 0;
+    let allDocumentsUploaded: boolean = false;
+    const requiredDocs = ['passportBio', 'visaCopy', 'photoId', 'usiEmail', 'recentPhoto'];
 
     try {
       // Upload to Google Drive in Documents subfolder
@@ -124,13 +128,12 @@ export default async function handler(
 
       // Check completion status
       const documentStatus = await sheetsService.getDocumentStatus(studentId);
-      const requiredDocs = ['passportBio', 'visaCopy', 'photoId', 'usiEmail', 'recentPhoto'];
       const uploadedDocs = documentStatus ? 
         requiredDocs.filter(doc => documentStatus[doc] && documentStatus[doc].trim() !== '') : 
         [];
       
-      const uploadedCount = uploadedDocs.length;
-      const allDocumentsUploaded = uploadedCount === requiredDocs.length;
+      uploadedCount = uploadedDocs.length;
+      allDocumentsUploaded = uploadedCount === requiredDocs.length;
 
       console.log(`Document completion check: ${uploadedCount}/${requiredDocs.length} documents uploaded`);
 

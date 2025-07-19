@@ -39,11 +39,14 @@ export interface LLNResponse {
 
 export interface EnrollmentData {
   studentId: string;
+  status?: string;
   personalDetails: {
     firstName: string;
     lastName?: string;
     surname?: string;
     middleName?: string;
+    title?: string;
+    gender?: string;
     email?: string;
     emailAddress?: string;
     mobile?: string;
@@ -57,6 +60,7 @@ export interface EnrollmentData {
       suburb?: string;
       state?: string;
       postcode?: string;
+      postalAddress?: string;
     };
   };
   qualificationDetails?: {
@@ -64,10 +68,39 @@ export interface EnrollmentData {
   };
   courseDetails?: {
     courseName?: string;
+    deliveryMode?: string;
+    startDate?: string;
   };
   background?: {
     countryOfBirth?: string;
+    countryOfCitizenship?: string;
+    mainLanguage?: string;
+    englishProficiency?: string;
+    australianCitizen?: boolean;
+    aboriginalStatus?: string;
+    employmentStatus?: string;
+    secondarySchool?: boolean;
+    schoolLevel?: string;
+    qualifications?: string;
+    disability?: boolean;
+    courseReason?: string;
     emergencyContact?: string;
+  };
+  compliance?: {
+    declarationSignature?: string;
+    declarationDate?: string;
+    policyDate?: string;
+    readPolicy?: boolean;
+    readHandbook?: boolean;
+    agreesToDeclaration?: boolean;
+    usi?: string;
+  };
+  documents?: {
+    passportBio?: string;
+    visaCopy?: string;
+    photoId?: string;
+    usiEmail?: string;
+    recentPhoto?: string;
   };
 }
 

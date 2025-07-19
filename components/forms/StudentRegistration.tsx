@@ -47,15 +47,16 @@ const StudentRegistration: React.FC<StudentRegistrationProps> = ({ onRegistratio
     } else {
       const today = new Date();
       const birthDate = new Date(formData.dateOfBirth);
-      const age = today.getFullYear() - birthDate.getFullYear();
+      let age = today.getFullYear() - birthDate.getFullYear();
       const monthDiff = today.getMonth() - birthDate.getMonth();
       
       if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-        age;
+        age--;
       }
 
-      if (age < 16) {
-        newErrors.dateOfBirth = 'You must be at least 16 years old to register';
+      // UPDATED: Changed minimum age from 16 to 18 years
+      if (age < 18) {
+        newErrors.dateOfBirth = 'You must be at least 18 years old to register';
       }
 
       if (birthDate > today) {
@@ -85,15 +86,16 @@ const StudentRegistration: React.FC<StudentRegistrationProps> = ({ onRegistratio
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setMessage(null);
-
+    
     if (!validateForm()) {
       return;
     }
 
     setIsSubmitting(true);
+    setMessage(null);
 
     try {
+      // Validate student using the correct API endpoint
       const response = await fetch('/api/validate-student', {
         method: 'POST',
         headers: {
@@ -174,6 +176,7 @@ const StudentRegistration: React.FC<StudentRegistrationProps> = ({ onRegistratio
           text: data.message || 'Registration failed. Please try again.'
         });
       }
+
     } catch (error) {
       console.error('Registration error:', error);
       setMessage({
@@ -186,40 +189,16 @@ const StudentRegistration: React.FC<StudentRegistrationProps> = ({ onRegistratio
   };
 
   return (
-    <div className="max-w-md mx-auto card">
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-nca-gray-900">Student Registration</h2>
-        <p className="text-nca-gray-600 mt-2">Enter your details to begin the LLN assessment</p>
-      </div>
-
+    <div className="max-w-md mx-auto">
       {message && (
-        <div className={`mb-6 p-4 rounded-lg ${
-          message.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' :
-          message.type === 'warning' ? 'bg-yellow-50 text-yellow-800 border border-yellow-200' :
-          'bg-red-50 text-red-800 border border-red-200'
+        <div className={`mb-6 p-4 rounded-lg border ${
+          message.type === 'error' 
+            ? 'bg-red-50 border-red-200 text-red-700' 
+            : message.type === 'warning'
+            ? 'bg-yellow-50 border-yellow-200 text-yellow-700'
+            : 'bg-green-50 border-green-200 text-green-700'
         }`}>
-          <div className="flex">
-            <div className="flex-shrink-0">
-              {message.type === 'success' && (
-                <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-              )}
-              {message.type === 'warning' && (
-                <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
-              )}
-              {message.type === 'error' && (
-                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
-              )}
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium">{message.text}</p>
-            </div>
-          </div>
+          <p className="text-sm">{message.text}</p>
         </div>
       )}
 
@@ -326,7 +305,7 @@ const StudentRegistration: React.FC<StudentRegistrationProps> = ({ onRegistratio
 
       <div className="mt-6 text-center">
         <p className="text-xs text-nca-gray-500">
-          * Required fields. Your information is secure and will only be used for enrollment purposes.
+          * Required fields. You must be at least 18 years old to register.
         </p>
       </div>
     </div>

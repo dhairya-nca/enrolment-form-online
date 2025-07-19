@@ -1,4 +1,4 @@
-// lib/googleDrive.ts
+// lib/googleDrive.ts - Enhanced with better error handling and document organization
 import { google } from 'googleapis';
 
 export class GoogleDriveService {
@@ -47,6 +47,10 @@ export class GoogleDriveService {
       });
 
       console.log(`Created folder: ${folderName} with ID: ${response.data.id}`);
+      
+      // Create subfolders for better organization
+      await this.createSubfolders(response.data.id);
+      
       return response.data.id;
     } catch (error) {
       console.error('Error creating folder:', error);
@@ -54,11 +58,46 @@ export class GoogleDriveService {
     }
   }
 
-  async uploadFile(folderId: string, fileName: string, fileBuffer: Buffer, mimeType: string): Promise<string> {
+  private async createSubfolders(parentFolderId: string): Promise<void> {
+    const subfolders = [
+      'Documents',
+      'Assessments',
+      'Enrollment_Forms',
+      'Communications'
+    ];
+
     try {
+      const promises = subfolders.map(folderName => 
+        this.drive.files.create({
+          requestBody: {
+            name: folderName,
+            parents: [parentFolderId],
+            mimeType: 'application/vnd.google-apps.folder',
+          },
+          fields: 'id',
+        })
+      );
+
+      await Promise.all(promises);
+      console.log('Created subfolders for student organization');
+    } catch (error) {
+      console.error('Error creating subfolders:', error);
+      // Don't fail the main folder creation if subfolders fail
+    }
+  }
+
+  async uploadFile(folderId: string, fileName: string, fileBuffer: Buffer, mimeType: string, subfolder?: string): Promise<string> {
+    try {
+      let targetFolderId = folderId;
+
+      // If subfolder is specified, find or create it
+      if (subfolder) {
+        targetFolderId = await this.findOrCreateSubfolder(folderId, subfolder);
+      }
+
       const fileMetadata = {
         name: fileName,
-        parents: [folderId],
+        parents: [targetFolderId],
       };
 
       // Convert Buffer to Readable stream for Google Drive API
@@ -82,23 +121,68 @@ export class GoogleDriveService {
       return response.data.webViewLink || `https://drive.google.com/file/d/${response.data.id}/view`;
     } catch (error) {
       console.error('Error uploading file:', error);
-      throw new Error('Failed to upload file');
+      throw new Error(`Failed to upload file: ${fileName}`);
     }
   }
 
-  async uploadPDFFromBuffer(folderId: string, fileName: string, pdfBuffer: Buffer): Promise<string> {
-    return this.uploadFile(folderId, fileName, pdfBuffer, 'application/pdf');
+  private async findOrCreateSubfolder(parentFolderId: string, subfolderName: string): Promise<string> {
+    try {
+      // First, try to find existing subfolder
+      const response = await this.drive.files.list({
+        q: `'${parentFolderId}' in parents and name='${subfolderName}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+        fields: 'files(id, name)',
+      });
+
+      if (response.data.files && response.data.files.length > 0) {
+        return response.data.files[0].id;
+      }
+
+      // Create subfolder if it doesn't exist
+      const createResponse = await this.drive.files.create({
+        requestBody: {
+          name: subfolderName,
+          parents: [parentFolderId],
+          mimeType: 'application/vnd.google-apps.folder',
+        },
+        fields: 'id',
+      });
+
+      return createResponse.data.id;
+    } catch (error) {
+      console.error('Error finding/creating subfolder:', error);
+      return parentFolderId; // Fallback to parent folder
+    }
   }
 
-  async uploadPDFFromBase64(folderId: string, fileName: string, base64Data: string): Promise<string> {
+  async uploadPDFFromBuffer(folderId: string, fileName: string, pdfBuffer: Buffer, subfolder?: string): Promise<string> {
+    // Determine appropriate subfolder based on file type
+    let targetSubfolder = subfolder;
+    if (!targetSubfolder) {
+      if (fileName.includes('LLN_Assessment')) {
+        targetSubfolder = 'Assessments';
+      } else if (fileName.includes('Personal_Details') || fileName.includes('Declaration') || fileName.includes('Enrollment_Summary')) {
+        targetSubfolder = 'Enrollment_Forms';
+      } else {
+        targetSubfolder = 'Documents';
+      }
+    }
+
+    return this.uploadFile(folderId, fileName, pdfBuffer, 'application/pdf', targetSubfolder);
+  }
+
+  async uploadPDFFromBase64(folderId: string, fileName: string, base64Data: string, subfolder?: string): Promise<string> {
     const buffer = Buffer.from(base64Data, 'base64');
-    return this.uploadPDFFromBuffer(folderId, fileName, buffer);
+    return this.uploadPDFFromBuffer(folderId, fileName, buffer, subfolder);
   }
 
-  async uploadImageFromBase64(folderId: string, fileName: string, base64Data: string, imageType: string = 'jpeg'): Promise<string> {
+  async uploadImageFromBase64(folderId: string, fileName: string, base64Data: string, imageType: string = 'jpeg', subfolder?: string): Promise<string> {
     const buffer = Buffer.from(base64Data, 'base64');
     const mimeType = `image/${imageType}`;
-    return this.uploadFile(folderId, fileName, buffer, mimeType);
+    
+    // Default to Documents subfolder for uploaded images
+    const targetSubfolder = subfolder || 'Documents';
+    
+    return this.uploadFile(folderId, fileName, buffer, mimeType, targetSubfolder);
   }
 
   async listFolderContents(folderId: string): Promise<any[]> {
@@ -182,6 +266,29 @@ export class GoogleDriveService {
     } catch (error) {
       console.error('Error generating shareable link:', error);
       throw new Error('Failed to generate shareable link');
+    }
+  }
+
+  // Get or create student folder and ensure proper structure
+  async ensureStudentFolder(studentId: string, studentName: string): Promise<string> {
+    try {
+      // First check if folder already exists
+      const searchResponse = await this.drive.files.list({
+        q: `'${this.parentFolderId}' in parents and name contains '${studentId}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+        fields: 'files(id, name)',
+      });
+
+      if (searchResponse.data.files && searchResponse.data.files.length > 0) {
+        console.log(`Found existing folder for student ${studentId}`);
+        return searchResponse.data.files[0].id;
+      }
+
+      // Create new folder if it doesn't exist
+      const folderName = `${studentId}_${studentName.replace(/\s+/g, '_')}`;
+      return await this.createStudentFolder(folderName);
+    } catch (error) {
+      console.error('Error ensuring student folder:', error);
+      throw new Error('Failed to ensure student folder exists');
     }
   }
 }

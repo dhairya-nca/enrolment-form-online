@@ -30,6 +30,7 @@ export class PDFGenerator {
     doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 105, footerY + 10, { align: 'center' });
   }
 
+  // FIXED METHOD - Handle proper data structure and edge cases
   generateLLNReport(data: LLNResponse & { personalInfo: any }): Buffer {
     const doc = new jsPDF();
     let yPosition = this.createHeader(doc, 'Language, Literacy and Numeracy (LLN) Assessment Report');
@@ -42,17 +43,27 @@ export class PDFGenerator {
 
     doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Student ID: ${data.studentId}`, 20, yPosition);
+    
+    // Handle potential undefined values safely
+    const studentId = data.studentId || 'N/A';
+    const firstName = data.personalInfo?.firstName || 'N/A';
+    const lastName = data.personalInfo?.lastName || 'N/A';
+    const email = data.personalInfo?.email || 'N/A';
+    const phone = data.personalInfo?.phone || 'N/A';
+    const dateOfBirth = data.personalInfo?.dateOfBirth || 'N/A';
+    const assessmentDate = data.completedAt ? new Date(data.completedAt).toLocaleDateString() : 'N/A';
+
+    doc.text(`Student ID: ${studentId}`, 20, yPosition);
     yPosition += 7;
-    doc.text(`Name: ${data.personalInfo.firstName} ${data.personalInfo.lastName}`, 20, yPosition);
+    doc.text(`Name: ${firstName} ${lastName}`, 20, yPosition);
     yPosition += 7;
-    doc.text(`Email: ${data.personalInfo.email}`, 20, yPosition);
+    doc.text(`Email: ${email}`, 20, yPosition);
     yPosition += 7;
-    doc.text(`Phone: ${data.personalInfo.phone}`, 20, yPosition);
+    doc.text(`Phone: ${phone}`, 20, yPosition);
     yPosition += 7;
-    doc.text(`Date of Birth: ${data.personalInfo.dateOfBirth}`, 20, yPosition);
+    doc.text(`Date of Birth: ${dateOfBirth}`, 20, yPosition);
     yPosition += 7;
-    doc.text(`Assessment Date: ${new Date(data.completedAt).toLocaleDateString()}`, 20, yPosition);
+    doc.text(`Assessment Date: ${assessmentDate}`, 20, yPosition);
     yPosition += 15;
 
     // Assessment Results
@@ -63,9 +74,13 @@ export class PDFGenerator {
 
     doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Overall Score: ${data.overallScore}%`, 20, yPosition);
+    
+    const overallScore = data.overallScore || 0;
+    const rating = data.rating || 'Not Rated';
+    
+    doc.text(`Overall Score: ${overallScore}%`, 20, yPosition);
     yPosition += 7;
-    doc.text(`Rating: ${data.rating}`, 20, yPosition);
+    doc.text(`Rating: ${rating}`, 20, yPosition);
     yPosition += 7;
     
     // Highlight eligibility status
@@ -81,18 +96,18 @@ export class PDFGenerator {
     doc.setFont('helvetica', 'normal');
     yPosition += 15;
 
-    // Detailed Scores
+    // Detailed Scores - Handle undefined scores safely
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.text('Detailed Scores by Category', 20, yPosition);
     yPosition += 10;
 
     const scores = [
-      { category: 'Learning Skills', score: data.scores.learning },
-      { category: 'Reading Comprehension', score: data.scores.reading },
-      { category: 'Writing Skills', score: data.scores.writing },
-      { category: 'Numeracy Skills', score: data.scores.numeracy },
-      { category: 'Digital Literacy', score: data.scores.digitalLiteracy }
+      { category: 'Learning Skills', score: data.scores?.learning || 0 },
+      { category: 'Reading Comprehension', score: data.scores?.reading || 0 },
+      { category: 'Writing Skills', score: data.scores?.writing || 0 },
+      { category: 'Numeracy Skills', score: data.scores?.numeracy || 0 },
+      { category: 'Digital Literacy', score: data.scores?.digitalLiteracy || 0 }
     ];
 
     doc.setFontSize(12);
@@ -102,6 +117,12 @@ export class PDFGenerator {
       yPosition += 7;
     });
     yPosition += 10;
+
+    // Check if we need a new page
+    if (yPosition > 220) {
+      doc.addPage();
+      yPosition = 20;
+    }
 
     // Recommendations
     doc.setFontSize(14);
@@ -120,12 +141,27 @@ export class PDFGenerator {
     doc.setFont('helvetica', 'normal');
     const splitText = doc.splitTextToSize(recommendations, 170);
     doc.text(splitText, 20, yPosition);
+    yPosition += splitText.length * 7 + 10;
+
+    // Assessment Summary
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Assessment Summary', 20, yPosition);
+    yPosition += 10;
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    const summaryText = `This Language, Literacy and Numeracy assessment was completed on ${assessmentDate}. The student achieved an overall score of ${overallScore}% and received a rating of "${rating}". ${data.eligible ? 'The student is eligible to proceed with their chosen course.' : 'Additional support is recommended before course commencement.'}`;
+    
+    const splitSummary = doc.splitTextToSize(summaryText, 170);
+    doc.text(splitSummary, 20, yPosition);
 
     this.createFooter(doc);
 
+    // Return the PDF as a Buffer
     return Buffer.from(doc.output('arraybuffer'));
   }
-
+  
   generatePersonalDetailsForm(data: EnrollmentData): Buffer {
     const doc = new jsPDF();
     let yPosition = this.createHeader(doc, 'Student Personal Details Form');
@@ -197,46 +233,6 @@ export class PDFGenerator {
       doc.text(detail, 20, yPosition);
       yPosition += 7;
     });
-    yPosition += 10;
-
-    // Check if we need a new page
-    if (yPosition > 250) {
-      doc.addPage();
-      yPosition = 20;
-    }
-
-    // Background Information
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Background Information', 20, yPosition);
-    yPosition += 10;
-
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'normal');
-    const backgroundDetails = [
-      `Emergency Contact: ${data.background.emergencyContact}`,
-      `Country of Birth: ${data.background.countryOfBirth}`,
-      `Country of Citizenship: ${data.background.countryOfCitizenship}`,
-      `Main Language: ${data.background.mainLanguage}`,
-      `English Proficiency: ${data.background.englishProficiency}`,
-      `Australian Citizen: ${data.background.australianCitizen ? 'Yes' : 'No'}`,
-      `Aboriginal Status: ${data.background.aboriginalStatus}`,
-      `Employment Status: ${data.background.employmentStatus}`,
-      `Secondary School Completed: ${data.background.secondarySchool ? 'Yes' : 'No'}`,
-      `School Level: ${data.background.schoolLevel}`,
-      `Qualifications: ${data.background.qualifications}`,
-      `Disability: ${data.background.disability ? 'Yes' : 'No'}`,
-      `Course Reason: ${data.background.courseReason}`
-    ];
-
-    backgroundDetails.forEach(detail => {
-      if (yPosition > 270) {
-        doc.addPage();
-        yPosition = 20;
-      }
-      doc.text(detail, 20, yPosition);
-      yPosition += 7;
-    });
 
     this.createFooter(doc);
     return Buffer.from(doc.output('arraybuffer'));
@@ -244,40 +240,7 @@ export class PDFGenerator {
 
   generateDeclarationForm(data: EnrollmentData): Buffer {
     const doc = new jsPDF();
-    let yPosition = this.createHeader(doc, 'Student Declaration and Compliance Forms');
-
-    // Student Information
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Student Information', 20, yPosition);
-    yPosition += 10;
-
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Student ID: ${data.studentId}`, 20, yPosition);
-    yPosition += 7;
-    doc.text(`Name: ${data.personalDetails.firstName} ${data.personalDetails.lastName}`, 20, yPosition);
-    yPosition += 7;
-    doc.text(`Email: ${data.personalDetails.email}`, 20, yPosition);
-    yPosition += 15;
-
-    // Privacy Declaration
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Privacy Declaration', 20, yPosition);
-    yPosition += 10;
-
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'normal');
-    const privacyText = 'I acknowledge that I have read and understood the Privacy Policy and consent to the collection, use, and disclosure of my personal information as outlined in the policy.';
-    const splitPrivacyText = doc.splitTextToSize(privacyText, 170);
-    doc.text(splitPrivacyText, 20, yPosition);
-    yPosition += splitPrivacyText.length * 7 + 5;
-    
-    doc.text(`Signature Date: ${data.compliance.privacyDate}`, 20, yPosition);
-    yPosition += 7;
-    doc.text('Digital Signature: Accepted', 20, yPosition);
-    yPosition += 15;
+    let yPosition = this.createHeader(doc, 'Declaration and Compliance Forms');
 
     // Student Declaration
     doc.setFontSize(14);
@@ -292,7 +255,7 @@ export class PDFGenerator {
     doc.text(splitDeclarationText, 20, yPosition);
     yPosition += splitDeclarationText.length * 7 + 5;
     
-    doc.text(`Signature Date: ${data.compliance.declarationDate}`, 20, yPosition);
+    doc.text(`Signature Date: ${data.compliance?.declarationDate || new Date().toISOString().split('T')[0]}`, 20, yPosition);
     yPosition += 7;
     doc.text('Digital Signature: Accepted', 20, yPosition);
     yPosition += 15;
@@ -310,13 +273,13 @@ export class PDFGenerator {
     doc.text(splitPolicyText, 20, yPosition);
     yPosition += splitPolicyText.length * 7 + 5;
     
-    doc.text(`Signature Date: ${data.compliance.policyDate}`, 20, yPosition);
+    doc.text(`Signature Date: ${data.compliance?.policyDate || new Date().toISOString().split('T')[0]}`, 20, yPosition);
     yPosition += 7;
     doc.text('Digital Signature: Accepted', 20, yPosition);
     yPosition += 15;
 
     // USI Information
-    if (data.compliance.usi) {
+    if (data.compliance?.usi) {
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
       doc.text('Unique Student Identifier (USI)', 20, yPosition);
@@ -350,7 +313,7 @@ export class PDFGenerator {
       `Course: ${data.courseDetails.courseName}`,
       `Delivery Mode: ${data.courseDetails.deliveryMode}`,
       `Start Date: ${data.courseDetails.startDate}`,
-      `Enrollment Status: ${data.status}`,
+      `Enrollment Status: ${data.status || 'Submitted'}`,
       `Submission Date: ${new Date().toLocaleDateString()}`
     ];
 
@@ -367,39 +330,20 @@ export class PDFGenerator {
     yPosition += 10;
 
     const documents = [
-      { name: 'Passport Bio Page', status: data.documents.passportBio ? 'Submitted' : 'Pending' },
-      { name: 'Visa Copy', status: data.documents.visaCopy ? 'Submitted' : 'Pending' },
-      { name: 'Photo ID', status: data.documents.photoId ? 'Submitted' : 'Pending' },
-      { name: 'USI Email Screenshot', status: data.documents.usiEmail ? 'Submitted' : 'Pending' },
-      { name: 'Recent Photo', status: data.documents.recentPhoto ? 'Submitted' : 'Pending' }
+      { name: 'Passport Bio Page', status: data.documents?.passportBio ? 'Uploaded' : 'Pending' },
+      { name: 'Visa Copy', status: data.documents?.visaCopy ? 'Uploaded' : 'Pending' },
+      { name: 'Photo ID', status: data.documents?.photoId ? 'Uploaded' : 'Pending' },
+      { name: 'USI Email', status: data.documents?.usiEmail ? 'Uploaded' : 'Pending' },
+      { name: 'Recent Photo', status: data.documents?.recentPhoto ? 'Uploaded' : 'Pending' }
     ];
 
     doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
-    documents.forEach(docItem => {
-      doc.text(`${docItem.name}: ${docItem.status}`, 20, yPosition);
-      yPosition += 7;
-    });
-    yPosition += 10;
-
-    // Next Steps
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Next Steps', 20, yPosition);
-    yPosition += 10;
-
-    const nextSteps = [
-      '1. Your enrollment application has been submitted successfully.',
-      '2. Our admissions team will review your application and documents.',
-      '3. You will receive a confirmation email within 2-3 business days.',
-      '4. If approved, you will receive course commencement details.',
-      '5. For any queries, please contact our admissions team.'
-    ];
-
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'normal');
-    nextSteps.forEach(step => {
-      doc.text(step, 20, yPosition);
+    documents.forEach(doc_item => {
+      const statusColor = doc_item.status === 'Uploaded' ? [0, 150, 0] : [200, 0, 0];
+      doc.setTextColor(statusColor[0], statusColor[1], statusColor[2]);
+      doc.text(`${doc_item.name}: ${doc_item.status}`, 20, yPosition);
+      doc.setTextColor(0, 0, 0); // Reset to black
       yPosition += 7;
     });
 

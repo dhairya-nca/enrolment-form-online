@@ -484,6 +484,41 @@ export class GoogleSheetsService {
     }
   }
 
+  async getDocumentTrackingSheet() {
+    try {
+      await this.ensureAuthenticated();
+      return this.doc.sheetsByTitle['Document_Tracking'] || await this.createDocumentTrackingSheet();
+    } catch (error) {
+      console.error('Error getting document tracking sheet:', error);
+      return null;
+    }
+  }
+
+  async getDocumentStatus(studentId: string): Promise<Record<string, string> | null> {
+    try {
+      await this.ensureAuthenticated();
+      const sheet = this.doc.sheetsByTitle['Document_Tracking'] || await this.createDocumentTrackingSheet();
+      
+      const rows = await sheet.getRows();
+      const studentDocRow = rows.find(row => row.get('student_id') === studentId);
+      
+      if (studentDocRow) {
+        return {
+          passportBio: studentDocRow.get('passport_bio') || '',
+          visaCopy: studentDocRow.get('visa_copy') || '',
+          photoId: studentDocRow.get('photo_id') || '',
+          usiEmail: studentDocRow.get('usi_email') || '',
+          recentPhoto: studentDocRow.get('recent_photo') || ''
+        };
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error getting document status:', error);
+      return null;
+    }
+  }
+
   private async createEnrollmentSheet() {
     try {
       // Create a basic sheet with fewer columns

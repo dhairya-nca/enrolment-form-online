@@ -62,34 +62,37 @@ export default async function handler(
         ]);
 
         generatedDocuments = [
-          { name: 'Personal Details Form', url: personalDetailsUrl },
-          { name: 'Declaration Forms', url: declarationUrl },
-          { name: 'Enrollment Summary', url: summaryUrl }
+          { type: 'Personal Details Form', url: personalDetailsUrl, fileName: personalDetailsFileName },
+          { type: 'Declaration Forms', url: declarationUrl, fileName: declarationFileName },
+          { type: 'Enrollment Summary', url: summaryUrl, fileName: summaryFileName }
         ];
 
-        console.log('Enrollment documents uploaded successfully:', generatedDocuments.length);
+        console.log('All enrollment documents generated successfully:', generatedDocuments.length);
 
       } catch (pdfError) {
-        console.error('Error generating PDFs:', pdfError);
-        // Continue without failing the entire request
+        console.error('Error generating enrollment PDFs:', pdfError);
+        // Continue without failing the entire enrollment
+        console.log('Continuing enrollment submission without PDF generation...');
       }
     } else {
-      console.warn('Student folder not found for:', enrollmentData.studentId);
+      console.log('Student folder not found, skipping PDF generation');
     }
 
-    console.log('Enrollment submission completed successfully');
-
-    res.status(200).json({ 
-      success: true, 
+    res.status(200).json({
+      success: true,
       submissionId,
       message: 'Enrollment submitted successfully',
-      documentsGenerated: generatedDocuments.length,
-      documents: generatedDocuments
+      studentId: enrollmentData.studentId,
+      documentsGenerated: generatedDocuments.length > 0,
+      generatedDocuments,
+      note: generatedDocuments.length > 0 
+        ? `${generatedDocuments.length} enrollment documents generated and saved to Google Drive` 
+        : 'Enrollment saved but PDF generation was skipped'
     });
 
   } catch (error) {
     console.error('Error submitting enrollment:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Internal server error',
       message: 'Failed to submit enrollment. Please try again.'
     });

@@ -1,6 +1,8 @@
 // pages/api/submit-lln.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { GoogleSheetsService } from '../../lib/googleSheets';
+import { GoogleDriveService } from '../../lib/googleDrive';
+import { PDFGenerator } from '../../lib/pdfGenerator';
 
 export default async function handler(
   req: NextApiRequest,
@@ -21,6 +23,8 @@ export default async function handler(
     console.log('Processing LLN submission for student:', llnData.studentId);
 
     const sheetsService = new GoogleSheetsService();
+    const driveService = new GoogleDriveService();
+    const pdfGenerator = new PDFGenerator();
 
     // Submit to Google Sheets and get attempt count
     const submissionId = await sheetsService.submitLLNAssessment({
@@ -35,7 +39,7 @@ export default async function handler(
 
     console.log('LLN assessment saved to sheets:', submissionId);
 
-    // Get updated attempt count
+    // Get updated attempt count and student folder
     const updatedStudentData = await sheetsService.findStudentByEmailAndDOB(
       llnData.personalInfo.email, 
       llnData.personalInfo.dateOfBirth
@@ -43,6 +47,41 @@ export default async function handler(
     
     const currentAttemptCount = updatedStudentData?.attemptCount || 0;
     const maxAttemptsReached = currentAttemptCount >= 3;
+
+    let pdfGenerated = false;
+    let llnReportUrl = null;
+
+    // Generate and upload LLN PDF report if student folder exists
+    if (updatedStudentData && updatedStudentData.folderId) {
+      try {
+        console.log('Generating LLN PDF report...');
+        
+        // Generate LLN Report PDF
+        const llnReportPdf = pdfGenerator.generateLLNReport({
+          ...llnData,
+          personalInfo: llnData.personalInfo
+        });
+        
+        const llnReportFileName = `LLN_Assessment_Report_${llnData.studentId}_${new Date().toISOString().split('T')[0]}.pdf`;
+        
+        // Upload PDF to student's Google Drive folder
+        llnReportUrl = await driveService.uploadPDFFromBuffer(
+          updatedStudentData.folderId, 
+          llnReportFileName, 
+          llnReportPdf
+        );
+        
+        console.log('LLN PDF report generated and uploaded:', llnReportUrl);
+        pdfGenerated = true;
+        
+      } catch (pdfError) {
+        console.error('Error generating LLN PDF report:', pdfError);
+        // Don't fail the entire request if PDF generation fails
+        console.log('Continuing without PDF generation...');
+      }
+    } else {
+      console.log('No student folder found, skipping PDF generation');
+    }
 
     console.log('LLN submission completed successfully');
 
@@ -55,8 +94,9 @@ export default async function handler(
       overallScore: llnData.overallScore,
       attemptCount: currentAttemptCount,
       maxAttemptsReached,
-      pdfGenerated: false, // Will be implemented later
-      note: 'PDF generation will be added once Drive permissions are configured'
+      pdfGenerated,
+      llnReportUrl,
+      note: pdfGenerated ? 'LLN report PDF generated and saved to Google Drive' : 'PDF generation skipped - no student folder available'
     });
 
   } catch (error) {

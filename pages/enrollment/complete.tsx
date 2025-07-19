@@ -86,7 +86,7 @@ const EnrollmentCompletePage = () => {
           
           {/* Success Message */}
           <h1 className="text-4xl font-bold text-nca-gray-900 mb-4">
-            🎉 Enrollment Successfully Completed!
+            Enrollment Successfully Completed!
           </h1>
           <p className="text-xl text-nca-gray-600 mb-2">
             Welcome to National College Australia, {studentData.personalDetails?.firstName}!
@@ -129,7 +129,7 @@ const EnrollmentCompletePage = () => {
 
           <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
             <p className="text-green-800 text-sm">
-              <strong>✅ Status:</strong> Your enrollment has been successfully submitted and is being processed by our admissions team.
+              <strong>Status:</strong> Your enrollment has been successfully submitted and is being processed by our admissions team.
             </p>
           </div>
         </motion.div>
@@ -141,7 +141,7 @@ const EnrollmentCompletePage = () => {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="card mb-8"
         >
-          <h2 className="text-2xl font-bold text-nca-gray-900 mb-6">🚀 What Happens Next?</h2>
+          <h2 className="text-2xl font-bold text-nca-gray-900 mb-6">What Happens Next?</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {nextSteps.map((step, index) => {
@@ -168,7 +168,7 @@ const EnrollmentCompletePage = () => {
           transition={{ duration: 0.6, delay: 0.6 }}
           className="card mb-8"
         >
-          <h2 className="text-2xl font-bold text-nca-gray-900 mb-4">⚠️ Important Reminders</h2>
+          <h2 className="text-2xl font-bold text-nca-gray-900 mb-4">Important Reminders</h2>
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <ul className="text-sm text-yellow-800 space-y-2">
               <li>• <strong>Placement Prerequisites:</strong> Submit your placement prerequisite documents within 2-3 weeks of enrollment</li>
@@ -191,21 +191,21 @@ const EnrollmentCompletePage = () => {
               onClick={() => window.print()}
               className="px-6 py-3 bg-nca-primary text-white rounded-lg hover:bg-nca-primary-dark transition-colors"
             >
-              📄 Print Summary
+              Print Summary
             </button>
             
             <a
               href="mailto:support@nca.edu.au"
               className="px-6 py-3 border border-nca-primary text-nca-primary rounded-lg hover:bg-nca-primary hover:text-white transition-colors"
             >
-              📧 Contact Support
+              Contact Support
             </a>
             
             <Link
               href="/"
               className="px-6 py-3 bg-nca-gray-100 text-nca-gray-700 rounded-lg hover:bg-nca-gray-200 transition-colors"
             >
-              🏠 Return to Homepage
+              Return to Homepage
             </Link>
           </div>
           

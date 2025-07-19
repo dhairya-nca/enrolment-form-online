@@ -54,7 +54,6 @@ const StudentRegistration: React.FC<StudentRegistrationProps> = ({ onRegistratio
         age--;
       }
 
-      // UPDATED: Changed minimum age from 16 to 18 years
       if (age < 18) {
         newErrors.dateOfBirth = 'You must be at least 18 years old to register';
       }
@@ -121,7 +120,7 @@ const StudentRegistration: React.FC<StudentRegistrationProps> = ({ onRegistratio
             attemptCount: data.attemptCount
           }));
 
-          // Proceed to LLN assessment after short delay
+          // CHANGE: Proceed to start page instead of LLN assessment directly
           setTimeout(() => {
             onRegistrationComplete({
               ...formData,
@@ -158,7 +157,7 @@ const StudentRegistration: React.FC<StudentRegistrationProps> = ({ onRegistratio
               attemptCount: data.attemptCount
             }));
 
-            // Proceed to LLN assessment
+            // CHANGE: Proceed to start page instead of LLN assessment directly
             setTimeout(() => {
               onRegistrationComplete({
                 ...formData,
@@ -189,62 +188,67 @@ const StudentRegistration: React.FC<StudentRegistrationProps> = ({ onRegistratio
   };
 
   return (
-    <div className="max-w-md mx-auto">
+    <div className="space-y-6">
       {message && (
-        <div className={`mb-6 p-4 rounded-lg border ${
-          message.type === 'error' 
-            ? 'bg-red-50 border-red-200 text-red-700' 
+        <div className={`p-4 rounded-lg border ${
+          message.type === 'success' 
+            ? 'bg-green-50 border-green-200 text-green-800' 
             : message.type === 'warning'
-            ? 'bg-yellow-50 border-yellow-200 text-yellow-700'
-            : 'bg-green-50 border-green-200 text-green-700'
+            ? 'bg-yellow-50 border-yellow-200 text-yellow-800'
+            : 'bg-red-50 border-red-200 text-red-800'
         }`}>
-          <p className="text-sm">{message.text}</p>
+          {message.text}
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label htmlFor="firstName" className="block text-sm font-medium text-nca-gray-700 mb-1">
-            First Name *
-          </label>
-          <input
-            type="text"
-            id="firstName"
-            name="firstName"
-            value={formData.firstName}
-            onChange={handleInputChange}
-            disabled={isSubmitting}
-            className={`form-field disabled:bg-nca-gray-100 ${
-              errors.firstName ? 'border-red-500' : ''
-            }`}
-            placeholder="Enter your first name"
-          />
-          {errors.firstName && (
-            <p className="mt-1 text-sm text-red-600">{errors.firstName}</p>
-          )}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* First Name */}
+          <div>
+            <label htmlFor="firstName" className="block text-sm font-medium text-nca-gray-700 mb-1">
+              First Name *
+            </label>
+            <input
+              type="text"
+              id="firstName"
+              name="firstName"
+              value={formData.firstName}
+              onChange={handleInputChange}
+              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-nca-primary ${
+                errors.firstName ? 'border-red-500' : 'border-nca-gray-300'
+              }`}
+              placeholder="Enter your first name"
+              disabled={isSubmitting}
+            />
+            {errors.firstName && (
+              <p className="mt-1 text-sm text-red-600">{errors.firstName}</p>
+            )}
+          </div>
+
+          {/* Last Name */}
+          <div>
+            <label htmlFor="lastName" className="block text-sm font-medium text-nca-gray-700 mb-1">
+              Last Name *
+            </label>
+            <input
+              type="text"
+              id="lastName"
+              name="lastName"
+              value={formData.lastName}
+              onChange={handleInputChange}
+              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-nca-primary ${
+                errors.lastName ? 'border-red-500' : 'border-nca-gray-300'
+              }`}
+              placeholder="Enter your last name"
+              disabled={isSubmitting}
+            />
+            {errors.lastName && (
+              <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>
+            )}
+          </div>
         </div>
 
-        <div>
-          <label htmlFor="lastName" className="block text-sm font-medium text-nca-gray-700 mb-1">
-            Last Name *
-          </label>
-          <input
-            type="text"
-            id="lastName"
-            name="lastName"
-            value={formData.lastName}
-            onChange={handleInputChange}
-            disabled={isSubmitting}
-            className={`form-field disabled:bg-nca-gray-100 ${
-              errors.lastName ? 'border-red-500' : ''
-            }`}
-            placeholder="Enter your last name"
-          />
-          {errors.lastName && (
-            <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>
-          )}
-        </div>
-
+        {/* Email */}
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-nca-gray-700 mb-1">
             Email Address *
@@ -255,17 +259,18 @@ const StudentRegistration: React.FC<StudentRegistrationProps> = ({ onRegistratio
             name="email"
             value={formData.email}
             onChange={handleInputChange}
-            disabled={isSubmitting}
-            className={`form-field disabled:bg-nca-gray-100 ${
-              errors.email ? 'border-red-500' : ''
+            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-nca-primary ${
+              errors.email ? 'border-red-500' : 'border-nca-gray-300'
             }`}
             placeholder="Enter your email address"
+            disabled={isSubmitting}
           />
           {errors.email && (
             <p className="mt-1 text-sm text-red-600">{errors.email}</p>
           )}
         </div>
 
+        {/* Date of Birth */}
         <div>
           <label htmlFor="dateOfBirth" className="block text-sm font-medium text-nca-gray-700 mb-1">
             Date of Birth *
@@ -276,37 +281,41 @@ const StudentRegistration: React.FC<StudentRegistrationProps> = ({ onRegistratio
             name="dateOfBirth"
             value={formData.dateOfBirth}
             onChange={handleInputChange}
-            disabled={isSubmitting}
-            max={new Date().toISOString().split('T')[0]} // Prevent future dates
-            className={`form-field disabled:bg-nca-gray-100 ${
-              errors.dateOfBirth ? 'border-red-500' : ''
+            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-nca-primary ${
+              errors.dateOfBirth ? 'border-red-500' : 'border-nca-gray-300'
             }`}
+            disabled={isSubmitting}
           />
           {errors.dateOfBirth && (
             <p className="mt-1 text-sm text-red-600">{errors.dateOfBirth}</p>
           )}
         </div>
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isSubmitting ? (
-            <div className="flex items-center justify-center">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-              Validating...
-            </div>
-          ) : (
-            'Continue to LLN Assessment'
-          )}
-        </button>
+        {/* Submit Button */}
+        <div className="pt-4">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
+              isSubmitting
+                ? 'bg-nca-gray-400 text-nca-gray-600 cursor-not-allowed'
+                : 'bg-nca-primary hover:bg-nca-primary-dark text-white'
+            }`}
+          >
+            {isSubmitting ? (
+              <div className="flex items-center justify-center space-x-2">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                <span>Validating...</span>
+              </div>
+            ) : (
+              'Complete Registration'
+            )}
+          </button>
+        </div>
       </form>
 
-      <div className="mt-6 text-center">
-        <p className="text-xs text-nca-gray-500">
-          * Required fields. You must be at least 18 years old to register.
-        </p>
+      <div className="text-center text-sm text-nca-gray-500">
+        <p>All fields marked with * are required</p>
       </div>
     </div>
   );

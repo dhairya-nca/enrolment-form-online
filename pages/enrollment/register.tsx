@@ -15,9 +15,9 @@ const RegisterPage = () => {
   const handleRegistrationComplete = (studentData: any) => {
     setIsRegistered(true);
     
-    // Redirect to LLN assessment after successful registration
+    // CHANGE: Redirect to start page instead of LLN assessment
     setTimeout(() => {
-      router.push('/enrollment/lln');
+      router.push('/enrollment/start');
     }, 1000);
   };
 
@@ -34,7 +34,7 @@ const RegisterPage = () => {
             <CheckCircleIcon className="w-10 h-10 text-green-600" />
           </div>
           <h2 className="text-3xl font-bold text-nca-gray-900 mb-3">Registration Successful!</h2>
-          <p className="text-nca-gray-600 mb-6 text-lg">Redirecting you to the LLN assessment...</p>
+          <p className="text-nca-gray-600 mb-6 text-lg">Redirecting you to the enrollment start page...</p>
           <div className="animate-spin rounded-full h-10 w-10 border-b-3 border-nca-primary mx-auto"></div>
         </motion.div>
       </div>
